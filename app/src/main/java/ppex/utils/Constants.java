@@ -11,7 +11,7 @@ public class Constants {
     public static String SERVER_LOCAL_IP = "127.0.0.1";
     public static String SERVER_LOCAL = "localhost";
     public static String SERVER_HOST1 = "119.139.199.127";
-    public static String SERVER_HOST2 = "183.15.178.162";
+    public static String SERVER_HOST2 = "61.141.65.239";
 //    public static String SERVER_HOST1 = "10.5.11.162";
 //    public static String SERVER_HOST2 = "10.5.11.55";
 
@@ -45,6 +45,24 @@ public class Constants {
             Arrays.stream(values()).forEach( type ->{
                 System.out.println("value:" + type.getValue() + " ordinal:" + type.ordinal());
             });
+        }
+    }
+    public static String getNatStrByValue(int value){
+        switch (NATTYPE.getByValue(value)){
+            case UNKNOWN:
+                return "UNKNOWN";
+            case SYMMETIC_NAT:
+                return "SYMMETIC_NAT";
+            case PORT_RESTRICT_CONE_NAT:
+                return "PORT_RESTRICT_CONE_NAT";
+            case RESTRICT_CONE_NAT:
+                return "RESTRICT_CONE_NAT";
+            case FULL_CONE_NAT:
+                return "FULL_CONE_NAT";
+            case PUBLIC_NETWORK:
+                return "PUBLIC_NETWORK";
+            default:
+                return "";
         }
     }
 }

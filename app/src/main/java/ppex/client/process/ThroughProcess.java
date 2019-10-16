@@ -50,6 +50,18 @@ public class ThroughProcess {
         }
     }
 
+    public void getConnectionsFromServer(Channel ch){
+        Log.d(TAG,"client get ids from server by channel");
+        try {
+            ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
+            throughTypeMsg.setAction(ThroughTypeMsg.ACTION.GET_CONNINFO.ordinal());
+            throughTypeMsg.setContent("");
+            ch.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void getConnectionsFromServer(ChannelHandlerContext ctx) {
         Log.d(TAG,"client get ids from server");
         try {

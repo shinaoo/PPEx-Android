@@ -1,5 +1,7 @@
 package ppex.client.process;
 
+import android.util.Log;
+
 import io.netty.channel.Channel;
 import ppex.client.entity.Client;
 import ppex.utils.Constants;
@@ -14,6 +16,8 @@ import java.net.InetSocketAddress;
  * 第一阶段和第二阶段的探测就不用隔开一段时间,需要Server1:Port1向Server2:Port2发送包
  */
 public class DetectProcess {
+
+    private static String TAG = DetectProcess.class.getName();
 
     public boolean stop = false;
 
@@ -59,7 +63,7 @@ public class DetectProcess {
 //                Thread.sleep(2000);
 //            }
             if (!channel.closeFuture().await(2000)){
-                System.out.println("查询超时");
+                Log.e(TAG,"查询超时");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,7 +95,6 @@ public class DetectProcess {
 
     public void two_send2s2p1() throws Exception {
         this.channel.writeAndFlush(MessageUtil.probemsg2Packet(MessageUtil.makeClientStepTwoProbeTypeMsg(Client.getInstance().local_address, Constants.PORT1), Client.getInstance().SERVER2P1));
-        System.out.println("send2s2p1...");
     }
 
     public void sendS2P2() throws Exception {

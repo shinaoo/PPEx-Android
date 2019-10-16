@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">PPEx-Android</string>
+    <string name="get_nattype">GetNatType</string>
+    <string name="get_allpeers">GetAllPeers</string>
+    <string name="macaddress">MacAdress</string>
+    <string name="peername">PeerName</string>
+    <string name="netsocketaddress">NetSocketAddress</string>
+    <string name="nattype">NatType</string>
+    <string name="localparam">LocalParam:</string>
+    <string name="localip">LocalIP</string>
+    <string name="localmac">LocalMacAddress</string>
 </resources>

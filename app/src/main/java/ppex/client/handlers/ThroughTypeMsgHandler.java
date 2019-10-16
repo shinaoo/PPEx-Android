@@ -4,8 +4,11 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
+import org.greenrobot.eventbus.EventBus;
+
 import io.netty.channel.ChannelHandlerContext;
 
+import ppex.client.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
 import ppex.client.process.ThroughProcess;
 import ppex.proto.entity.through.Connect;
@@ -54,7 +57,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
         } else {
             //todo 增加心跳连接
             Log.d(TAG,"client get ids from server");
-            ThroughProcess.getInstance().getConnectionsFromServer(ctx);
+//            ThroughProcess.getInstance().getConnectionsFromServer(ctx);
         }
     }
 
@@ -65,7 +68,9 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
         Log.d(TAG,"All connection:" + recvinfo.recvinfos);
         List<Connection> connections = JSON.parseArray(recvinfo.recvinfos, Connection.class);
         //todo 发送要连接的Connection信息
-        ThroughProcess.getInstance().connectOtherPeer(ctx, connections.get(0));
+//        ThroughProcess.getInstance().connectOtherPeer(ctx, connections.get(0));
+        //todo 将Connections消息返回到MainActivity
+        EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGH_GET_INFO.ordinal(),connections));
     }
 
     private void handleConnectFromServer(ChannelHandlerContext ctx, RecvInfo recvinfo) {
