@@ -70,7 +70,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
         //todo 发送要连接的Connection信息
 //        ThroughProcess.getInstance().connectOtherPeer(ctx, connections.get(0));
         //todo 将Connections消息返回到MainActivity
-        EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGH_GET_INFO.ordinal(),connections));
+        EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGH_GET_INFO.getValue(),connections));
     }
 
     private void handleConnectFromServer(ChannelHandlerContext ctx, RecvInfo recvinfo) {

@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
             case THROUGH_GET_INFO:
                 List<Connection> connections = (List<Connection>) event.getData();
                 connectionAdapter.setConnectios(connections);
-                lv_showallpeers.postInvalidate();
+                connectionAdapter.notifyDataSetChanged();
                 break;
         }
     }

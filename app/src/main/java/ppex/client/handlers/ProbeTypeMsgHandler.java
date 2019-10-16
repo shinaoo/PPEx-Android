@@ -55,6 +55,7 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
         Log.d(TAG,"client handle msg recv from s2p1:" + msg.toString());
         if (msg.getStep() == ProbeTypeMsg.Step.ONE.ordinal()){
             DetectProcess.getInstance().NAT_ADDRESS_FROM_S2P1 = msg.getRecordInetSocketAddress();
+            Log.e(TAG,"s1 addr:" + DetectProcess.getInstance().NAT_ADDRESS_FROM_S1 + " s2p1:" + DetectProcess.getInstance().NAT_ADDRESS_FROM_S2P1);
             if (DetectProcess.getInstance().NAT_ADDRESS_FROM_S1.equals(DetectProcess.getInstance().NAT_ADDRESS_FROM_S2P1)){
                 DetectProcess.getInstance().NAT_ADDRESS_SAME = true;
             }else{

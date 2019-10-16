@@ -18,7 +18,10 @@ public class Connection {
     public int natType;
     public transient ChannelHandlerContext ctx;
 
-    public Connection(String macAddress,InetSocketAddress inetSocketAddress,String peerName,int natType) {
+    public Connection() {
+    }
+
+    public Connection(String macAddress, InetSocketAddress inetSocketAddress, String peerName, int natType) {
         this.macAddress = macAddress;
         this.inetSocketAddress = inetSocketAddress;
         this.peerName = peerName;

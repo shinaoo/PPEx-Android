@@ -1,6 +1,9 @@
 package ppex.proto.entity.through;
 
 public class RecvInfo {
+    public RecvInfo() {
+    }
+
     public RecvInfo(int type, String recvinfos){
         this.type = type;
         this.recvinfos = recvinfos;
