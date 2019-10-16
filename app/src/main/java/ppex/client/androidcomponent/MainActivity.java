@@ -9,6 +9,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private Channel ch;
 
     private Button btn_getnattype, btn_getallpeers;
-    private TextView tv_shownattypeinfo, tv_showconectinfo,tv_showlocalpeername,tv_showlocalip,tv_showlocalmac;
+    private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac;
     private ListView lv_showallpeers;
 
     private ConnectionAdapter connectionAdapter;
@@ -106,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
             Client.getInstance().localConnection = connection;
 //            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue(),""));
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
+        });
+        lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
+            ThroughProcess.getInstance().connectPeer(ch,connections.get(position));
         });
     }
 
@@ -171,46 +176,46 @@ public class MainActivity extends AppCompatActivity {
         tv_showlocalpeername.setText(Client.getInstance().peerName);
     }
 
-    private String getLocalIPAddress(){
-        try{
+    private String getLocalIPAddress() {
+        try {
             String ip;
             ConnectivityManager connMan = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMan.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
             NetworkInfo wifinetworkinfo = connMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (networkInfo.isConnected()){
+            if (networkInfo.isConnected()) {
                 ip = getLocalIPv4Address();
                 return ip;
-            }else if (wifinetworkinfo.isConnected()){
+            } else if (wifinetworkinfo.isConnected()) {
                 WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 int ipaddress = wifiInfo.getIpAddress();
                 ip = int2Ip(ipaddress);
                 return ip;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private String int2Ip(int ipaddress){
+    private String int2Ip(int ipaddress) {
         return (ipaddress & 0xFF) + "." + ((ipaddress >> 8) & 0xFF) + "." + ((ipaddress >> 16) & 0xFF) + "." + ((ipaddress >> 24) & 0xFF);
     }
 
-    private String getLocalIPv4Address(){
+    private String getLocalIPv4Address() {
         try {
             String ip;
             ArrayList<NetworkInterface> nilist = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for (NetworkInterface ni : nilist){
+            for (NetworkInterface ni : nilist) {
                 ArrayList<InetAddress> iaList = Collections.list(ni.getInetAddresses());
-                for (InetAddress addr : iaList){
-                    if (!addr.isLoopbackAddress() && !addr.isLinkLocalAddress()){
+                for (InetAddress addr : iaList) {
+                    if (!addr.isLoopbackAddress() && !addr.isLinkLocalAddress()) {
                         ip = addr.getHostAddress();
                         return ip;
                     }
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -227,10 +232,10 @@ public class MainActivity extends AppCompatActivity {
             if (networkInterface == null)
                 return "02:00:00:00:00:02";
             byte[] addr = networkInterface.getHardwareAddress();
-            for (byte b : addr){
-                sb.append(String.format("%02X:",b));
+            for (byte b : addr) {
+                sb.append(String.format("%02X:", b));
             }
-            if (sb.length() > 0){
+            if (sb.length() > 0) {
                 sb.deleteCharAt(sb.length() - 1);
             }
             macAddress = sb.toString();
@@ -246,7 +251,8 @@ public class MainActivity extends AppCompatActivity {
             case DETECT_END_OF:
                 break;
             case THROUGH_GET_INFO:
-                List<Connection> connections = (List<Connection>) event.getData();
+                List<Connection> conns = (List<Connection>) event.getData();
+                connections = conns;
                 connectionAdapter.setConnectios(connections);
                 connectionAdapter.notifyDataSetChanged();
                 break;

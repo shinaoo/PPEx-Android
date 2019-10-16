@@ -74,8 +74,8 @@ public class ThroughProcess {
         }
     }
 
-    public void connectOtherPeer(ChannelHandlerContext ctx, Connection connection) {
-        Log.d(TAG,"client connect other peer");
+    public void connectPeer(Channel channel,Connection connection){
+        Log.d(TAG,"client connect peer");
         try {
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
@@ -86,7 +86,7 @@ public class ThroughProcess {
             connections.add(connection);
             connect.setContent(JSON.toJSONString(connections));
             throughTypeMsg.setContent(JSON.toJSONString(connect));
-            ctx.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+            channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
         } catch (Exception e) {
             e.printStackTrace();
         }
