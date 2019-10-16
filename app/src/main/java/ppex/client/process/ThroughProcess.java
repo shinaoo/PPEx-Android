@@ -80,7 +80,7 @@ public class ThroughProcess {
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
             Connect connect = new Connect();
-            connect.setType(Connect.TYPE.REQUEST_CONNECT_SERVER.ordinal());
+//            connect.setType(Connect.TYPE.REQUEST_CONNECT_SERVER.ordinal());
             List<Connection> connections = new ArrayList<>();
             connections.add(Client.getInstance().localConnection);
             connections.add(connection);
