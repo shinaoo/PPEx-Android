@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import ppex.client.entity.Client;
+import ppex.proto.entity.through.ConnectMap;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.Connection;
 import ppex.proto.type.ThroughTypeMsg;
@@ -87,10 +88,72 @@ public class ThroughProcess {
 //            connect.setContent(JSON.toJSONString(connections));
 //            throughTypeMsg.setContent(JSON.toJSONString(connect));
 //            channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
-            if (Client.getInstance().localConnection.)
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
+            Connect.TYPE connectType = Client.judgeConnectType(Client.getInstance().localConnection,connection);
             Connect connect = new Connect();
+
+            List<Connection> connections = new ArrayList<>();
+            connections.add(Client.getInstance().localConnection);
+            connections.add(connection);
+            String connectionsStr = JSON.toJSONString(connections);
+            //将建立连接的两边保存,保存在进行中的map中
+            ConnectMap connectMap = new ConnectMap(connectType.ordinal(),connections);
+            Client.getInstance().connectingMaps.add(connectMap);
+
+            if (connectType == Connect.TYPE.DIRECT){
+                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                connect.setContent("");
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                //等待返回pong就确认建立连接
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.inetSocketAddress));
+
+                //发送给Server端，表明正在建立连接
+                connect.setType(Connect.TYPE.CONNECTING.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+
+            }else if (connectType == Connect.TYPE.HOLE_PUNCH){
+                connect.setType(connectType.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                //先将消息发给服务，由服务转发给target connection打洞
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+
+                connect.setType(Connect.TYPE.CONNECTING.ordinal());
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+            }else if (connectType == Connect.TYPE.REVERSE){
+                //首先向B 打洞
+                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                //率先打洞
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.inetSocketAddress));
+
+                //让server给B转发，由B 再通信
+                connect.setType(connectType.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+
+                connect.setType(Connect.TYPE.CONNECTING.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+            }else if (connectType == Connect.TYPE.FORWARD){
+                connect.setType(Connect.TYPE.FORWARD.ordinal());
+                connect.setContent(connectionsStr);
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+
+                connect.setType(Connect.TYPE.CONNECTING.ordinal());
+                throughTypeMsg.setContent(JSON.toJSONString(connect));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,Client.getInstance().SERVER1));
+            }else{
+                throw new Exception("unknown connect operate:" + connectionsStr);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

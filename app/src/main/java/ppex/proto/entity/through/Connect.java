@@ -10,10 +10,14 @@ public class Connect {
     public enum TYPE{
         CONNECT_PING,                               //两边之间利用PING,PONG确认打通
         CONNECT_PONG,
+        //通信类型
         DIRECT,                                     //根据两边nattype判断类型
         HOLE_PUNCH,
         REVERSE,
         FORWARD,
+
+        CONNECTING,                                //暂时保留，client发给Server，可以检测两边连接状态
+        CONNECTED,
         ;
     }
 

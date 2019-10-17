@@ -11,6 +11,7 @@ import java.util.List;
 
 import io.netty.channel.ChannelHandlerContext;
 import ppex.client.androidcomponent.busevent.BusEvent;
+import ppex.client.entity.Client;
 import ppex.client.process.ThroughProcess;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.Connection;
@@ -18,6 +19,7 @@ import ppex.proto.entity.through.RecvInfo;
 import ppex.proto.type.ThroughTypeMsg;
 import ppex.proto.type.TypeMessage;
 import ppex.proto.type.TypeMessageHandler;
+import ppex.utils.MessageUtil;
 
 public class ThroughTypeMsgHandler implements TypeMessageHandler {
     private static String TAG = ThroughTypeMsgHandler.class.getName();
@@ -70,17 +72,29 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
     }
 
     private void handleConnectFromServer(ChannelHandlerContext ctx, RecvInfo recvinfo) {
-
+        //从服务转发而来的Connect_CONN信息
     }
 
-    private void handleConnectType(ChannelHandlerContext ctx, Connect connect) {
-
+    private void handleConnecCONN(ChannelHandlerContext ctx,ThroughTypeMsg ttmsg,InetSocketAddress fromaddress){
+        Connect connect = JSON.parseObject(ttmsg.getContent(),Connect.class);
+        if (connect.getType() == Connect.TYPE.CONNECT_PING.ordinal()){
+            connect.setType(Connect.TYPE.CONNECT_PONG.ordinal());
+            ttmsg.setContent(JSON.toJSONString(connect));
+            ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,fromaddress));
+        }else if (connect.getType() == Connect.TYPE.CONNECT_PONG.ordinal()){
+            //收到pong,判断Client是否有该连接存在
+            if (Client.getInstance().isConnecting(Client.getInstance().connectedMaps,connect)){
+                //建立连接成功,目前客户端应该只有1个ConnectMap
+                //todo 可以增加心跳
+                Client.getInstance().connectedMaps.add(Client.getInstance().connectingMaps.remove(0));
+            }
+            //给服务器发送建立连接成功的消息
+            connect.setType(Connect.TYPE.CONNECTED.ordinal());
+            ttmsg.setContent(JSON.toJSONString(connect));
+            ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,Client.getInstance().SERVER1));
+        }
     }
 
-    private void handleReturnStartPunch(ChannelHandlerContext ctx, Connect connect) {
-    }
 
-    private void handleConnecCONN(ChannelHandlerContext ctx, ThroughTypeMsg ttmsg, InetSocketAddress fromaddress) {
-    }
 
 }
