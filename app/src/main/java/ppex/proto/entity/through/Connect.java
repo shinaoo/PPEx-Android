@@ -8,6 +8,12 @@ package ppex.proto.entity.through;
 public class Connect {
 
     public enum TYPE{
+        CONNECT_PING,                               //两边之间利用PING,PONG确认打通
+        CONNECT_PONG,
+        DIRECT,                                     //根据两边nattype判断类型
+        HOLE_PUNCH,
+        REVERSE,
+        FORWARD,
         ;
     }
 

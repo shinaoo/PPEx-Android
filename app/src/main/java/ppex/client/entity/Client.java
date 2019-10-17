@@ -1,5 +1,6 @@
 package ppex.client.entity;
 
+import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.Connection;
 import ppex.utils.Constants;
 
@@ -34,5 +35,11 @@ public class Client {
     public int connectType=0;
     public Connection localConnection;
     public Connection targetConnection;
+
+    public static Connect.TYPE judgeConnectType(Connection A,Connection B){
+        if (B.natType == Constants.NATTYPE.PUBLIC_NETWORK.getValue()){
+
+        }
+    }
 
 }

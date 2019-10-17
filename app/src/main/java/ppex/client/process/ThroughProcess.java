@@ -77,16 +77,21 @@ public class ThroughProcess {
     public void connectPeer(Channel channel,Connection connection){
         Log.d(TAG,"client connect peer");
         try {
+//            ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
+//            throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
+//            Connect connect = new Connect();
+////            connect.setType(Connect.TYPE.REQUEST_CONNECT_SERVER.ordinal());
+//            List<Connection> connections = new ArrayList<>();
+//            connections.add(Client.getInstance().localConnection);
+//            connections.add(connection);
+//            connect.setContent(JSON.toJSONString(connections));
+//            throughTypeMsg.setContent(JSON.toJSONString(connect));
+//            channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+            if (Client.getInstance().localConnection.)
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
             Connect connect = new Connect();
-//            connect.setType(Connect.TYPE.REQUEST_CONNECT_SERVER.ordinal());
-            List<Connection> connections = new ArrayList<>();
-            connections.add(Client.getInstance().localConnection);
-            connections.add(connection);
-            connect.setContent(JSON.toJSONString(connections));
-            throughTypeMsg.setContent(JSON.toJSONString(connect));
-            channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
