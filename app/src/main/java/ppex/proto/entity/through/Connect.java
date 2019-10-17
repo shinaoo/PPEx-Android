@@ -13,6 +13,7 @@ public class Connect {
         //通信类型
         DIRECT,                                     //根据两边nattype判断类型
         HOLE_PUNCH,
+        RETURN_HOLE_PUNCH,
         REVERSE,
         FORWARD,
 
