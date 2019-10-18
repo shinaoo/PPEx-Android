@@ -13,7 +13,9 @@ import io.netty.channel.ChannelHandlerContext;
 import ppex.client.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
 import ppex.client.process.ThroughProcess;
+import ppex.proto.Message;
 import ppex.proto.entity.through.Connect;
+import ppex.proto.entity.through.ConnectMap;
 import ppex.proto.entity.through.Connection;
 import ppex.proto.entity.through.RecvInfo;
 import ppex.proto.type.ThroughTypeMsg;
@@ -73,25 +75,81 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
 
     private void handleConnectFromServer(ChannelHandlerContext ctx, RecvInfo recvinfo) {
         //从服务转发而来的Connect_CONN信息
+        if (recvinfo.type == ThroughTypeMsg.RECVTYPE.CONNECT_CONN.ordinal()){
+            Connect connect = JSON.parseObject(recvinfo.recvinfos,Connect.class);
+            List<Connection> connections = JSON.parseArray(connect.getContent(),Connection.class);
+            ThroughTypeMsg ttmsg = new ThroughTypeMsg();
+            ttmsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
+            if (connect.getType() == Connect.TYPE.HOLE_PUNCH.ordinal()){
+                Log.e(TAG,"Client handle hole_punch msg:" + connect.toString());
+                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                //多发几次都可以
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
+
+                connect.setType(Connect.TYPE.RETURN_HOLE_PUNCH.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,Client.getInstance().SERVER1));
+            }else if (connect.getType() == Connect.TYPE.RETURN_HOLE_PUNCH.ordinal()){
+                Log.e(TAG,"Client handle return_hole_punch msg:" + connect.toString());
+                //开始给B 发ping消息
+                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(1).inetSocketAddress));
+            }else if (connect.getType() == Connect.TYPE.REVERSE.ordinal()){
+                Log.e(TAG,"Client handle reverse msg:" + connect.toString());
+                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
+            }else if (connect.getType() == Connect.TYPE.FORWARD.ordinal()){
+                Log.e(TAG,"Client handle forward msg:" + connect.toString());
+                connect.setType(Connect.TYPE.RETURN_FORWARD.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,Client.getInstance().SERVER1));
+            }else if (connect.getType() == Connect.TYPE.RETURN_FORWARD.ordinal()){
+                Log.e(TAG,"Client handle return_forward msg:" + connect.toString());
+                connect.setType(Connect.TYPE.CONNECTED.ordinal());
+                ttmsg.setContent(JSON.toJSONString(connect));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,Client.getInstance().SERVER1));
+
+                //这个是判断forward类型是否已经连接成功
+                Client.getInstance().connectedMaps.add(new ConnectMap(Connect.TYPE.FORWARD.ordinal(),connections));
+                EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_CONNECT_END.ordinal(),""));
+            }
+        }
     }
 
-    private void handleConnecCONN(ChannelHandlerContext ctx,ThroughTypeMsg ttmsg,InetSocketAddress fromaddress){
+    private void handleConnecCONN(ChannelHandlerContext ctx,ThroughTypeMsg ttmsg,InetSocketAddress fromaddress) throws Exception{
         Connect connect = JSON.parseObject(ttmsg.getContent(),Connect.class);
         if (connect.getType() == Connect.TYPE.CONNECT_PING.ordinal()){
+            Log.e(TAG,"Client handle connect_ping msg:" + connect.toString());
             connect.setType(Connect.TYPE.CONNECT_PONG.ordinal());
             ttmsg.setContent(JSON.toJSONString(connect));
             ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,fromaddress));
+            if (Client.getInstance().isConnecting(Client.getInstance().connectingMaps,connect)){
+                //还需要判断是不是REVERSE类型
+                ConnectMap connectMap = Client.getInstance().connectingMaps.get(0);
+                if (connectMap.getConnectType() == Connect.TYPE.REVERSE.ordinal()){
+                    Client.getInstance().connectedMaps.add(Client.getInstance().connectingMaps.remove(0));
+                    EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_CONNECT_END.ordinal(),""));
+                }
+            }
         }else if (connect.getType() == Connect.TYPE.CONNECT_PONG.ordinal()){
-            //收到pong,判断Client是否有该连接存在
-            if (Client.getInstance().isConnecting(Client.getInstance().connectedMaps,connect)){
+            Log.e(TAG,"Client handle connect_pong msg:" + connect.toString());
+            //收到pong,判断Client是否有该连接存在。这个用来判断HOLE_PUNCH和DIRECT类型是否已经连接成功
+            if (Client.getInstance().isConnecting(Client.getInstance().connectingMaps,connect)){
                 //建立连接成功,目前客户端应该只有1个ConnectMap
                 //todo 可以增加心跳
                 Client.getInstance().connectedMaps.add(Client.getInstance().connectingMaps.remove(0));
+                EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_CONNECT_END.ordinal(),""));
             }
             //给服务器发送建立连接成功的消息
             connect.setType(Connect.TYPE.CONNECTED.ordinal());
             ttmsg.setContent(JSON.toJSONString(connect));
             ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,Client.getInstance().SERVER1));
+        }else{
+            throw new Exception("Client handle unknown connect operate:" + connect.toString());
         }
     }
 

@@ -7,7 +7,7 @@ public class BusEvent {
     public enum Type{
         DETECT_END_OF(0),
         THROUGH_GET_INFO(1),
-
+        THROUGN_CONNECT_END(2),
         ;
         private int value;
         Type(int value){
