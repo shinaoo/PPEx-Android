@@ -3,11 +3,13 @@ package ppex.client.androidcomponent;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,14 +18,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -52,10 +58,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = MainActivity.class.getName();
 
-    private EventLoopGroup group;
-    private Bootstrap bootstrap;
-    private Channel ch;
-
     private Button btn_getnattype, btn_getallpeers;
     private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac;
     private ListView lv_showallpeers;
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        group.shutdownGracefully();
+        Client.getInstance().group.shutdownGracefully();
         EventBus.getDefault().unregister(this);
     }
 
@@ -94,12 +96,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void setEventListener() {
         btn_getallpeers.setOnClickListener(v -> {
-            ThroughProcess.getInstance().setChannel(ch);
+            ThroughProcess.getInstance().setChannel(Client.getInstance().ch);
             ThroughProcess.getInstance().sendSaveInfo();
-            ThroughProcess.getInstance().getConnectionsFromServer(ch);
+            ThroughProcess.getInstance().getConnectionsFromServer(Client.getInstance().ch);
         });
         btn_getnattype.setOnClickListener(v -> {
-            DetectProcess.getInstance().setChannel(ch);
+            DetectProcess.getInstance().setChannel(Client.getInstance().ch);
             DetectProcess.getInstance().startDetect();
             Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
             Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
@@ -111,7 +113,8 @@ public class MainActivity extends AppCompatActivity {
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
-            ThroughProcess.getInstance().connectPeer(ch,connections.get(position));
+            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch,connections.get(position));
+            Client.getInstance().targetConnection =connections.get(position);
         });
     }
 
@@ -124,10 +127,10 @@ public class MainActivity extends AppCompatActivity {
         Identity.INDENTITY = Identity.Type.CLIENT.ordinal();
         getLocalInetSocketAddress();
 
-        group = new NioEventLoopGroup(1);
+        Client.getInstance().group = new NioEventLoopGroup(1);
         try {
-            bootstrap = new Bootstrap();
-            bootstrap.group(group).channel(NioDatagramChannel.class)
+            Client.getInstance().bootstrap = new Bootstrap();
+            Client.getInstance().bootstrap.group(Client.getInstance().group).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
                     .handler(new ChannelInitializer<Channel>() {
                         @Override
@@ -137,22 +140,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 //                    .handler(new UdpClientHandler());
-            ch = bootstrap.bind(Constants.PORT3).sync().channel();
-
-            //1.探测阶段.开始DetectProcess
-//            DetectProcess.getInstance().setChannel(ch);
-//            DetectProcess.getInstance().startDetect();
-//
-//            Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
-//            System.out.println("Client NAT type is :" + Client.getInstance().NAT_TYPE);
-//
-//            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS,Client.getInstance().address,
-//                    Client.getInstance().peerName,Client.getInstance().NAT_TYPE);
-//            Client.getInstance().localConnection = connection;
-
-            //2.穿越阶段
-//            ThroughProcess.getInstance().setChannel(ch);
-//            ThroughProcess.getInstance().sendSaveInfo();
+            Client.getInstance().ch = Client.getInstance().bootstrap.bind(Constants.PORT3).sync().channel();
 
         } catch (Exception e) {
             e.printStackTrace();

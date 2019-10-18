@@ -2,6 +2,9 @@ package ppex.client.entity;
 
 import com.alibaba.fastjson.JSON;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.ConnectMap;
 import ppex.proto.entity.through.Connection;
@@ -24,6 +27,10 @@ public class Client {
         }
         return instance;
     }
+
+    public EventLoopGroup group;
+    public Bootstrap bootstrap;
+    public Channel ch;
 
     public long id = 1;
     public String peerName = "client1";
@@ -71,9 +78,5 @@ public class Client {
             return connectMap.getConnections().get(0).equals(connections.get(0)) && connectMap.getConnections().get(1).equals(connections.get(1));
         });
     }
-
-
-
-
 
 }

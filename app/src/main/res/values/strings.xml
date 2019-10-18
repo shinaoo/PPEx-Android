@@ -9,4 +9,8 @@
     <string name="localparam">LocalParam:</string>
     <string name="localip">LocalIP</string>
     <string name="localmac">LocalMacAddress</string>
+
+    <string name="back">back</string>
+
+    <string name="getfile">GetFile</string>
 </resources>
