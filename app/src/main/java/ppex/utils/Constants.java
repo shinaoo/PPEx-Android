@@ -10,8 +10,8 @@ public class Constants {
 
     public static String SERVER_LOCAL_IP = "127.0.0.1";
     public static String SERVER_LOCAL = "localhost";
-    public static String SERVER_HOST1 = "119.139.199.127";
-    public static String SERVER_HOST2 = "61.141.65.239";
+    public static String SERVER_HOST1 = "113.110.224.21";
+    public static String SERVER_HOST2 = "61.141.64.127";
 //    public static String SERVER_HOST1 = "10.5.11.162";
 //    public static String SERVER_HOST2 = "10.5.11.55";
 
@@ -47,6 +47,7 @@ public class Constants {
             });
         }
     }
+
     public static String getNatStrByValue(int value){
         switch (NATTYPE.getByValue(value)){
             case UNKNOWN:
