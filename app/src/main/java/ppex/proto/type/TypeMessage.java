@@ -16,6 +16,7 @@ public class TypeMessage {
         MSG_TYPE_HEART_PING,
         MSG_TYPE_HEART_PONG,
         MSG_TYPE_TXT,
+        MSG_TYPE_FILE,
     }
 
     public TypeMessage() {

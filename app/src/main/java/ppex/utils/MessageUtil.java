@@ -6,13 +6,15 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.SocketUtils;
+import org.apache.log4j.Logger;
 import ppex.proto.Message;
 import ppex.proto.type.*;
 
 import java.net.InetSocketAddress;
 
 public class MessageUtil {
-    private static String TAG = MessageUtil.class.getName();
+
+    private static Logger LOGGER = Logger.getLogger(MessageUtil.class);
 
     public static ByteBuf msg2ByteBuf(Message msg) {
         ByteBuf msgBuf = Unpooled.directBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);
@@ -108,6 +110,13 @@ public class MessageUtil {
         return typemsg2Packet(typeMessage,address);
     }
 
+    public static DatagramPacket fileMsg2Packet(FileTypeMsg msg,InetSocketAddress address){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_FILE.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Packet(typeMessage,address);
+    }
+
     /**
      * ----------------------------------DatagramPacket转各类TypeMessage部分----------------------------------------------------
      **/
@@ -144,6 +153,12 @@ public class MessageUtil {
         TypeMessage typeMessage = packet2Typemsg(packet);
         PongTypeMsg pmsg = JSON.parseObject(typeMessage.getBody(),PongTypeMsg.class);
         return pmsg;
+    }
+
+    public static FileTypeMsg packet2FileMsg(DatagramPacket packet){
+        TypeMessage typeMessage = packet2Typemsg(packet);
+        FileTypeMsg fmsg = JSON.parseObject(typeMessage.getBody(),FileTypeMsg.class);
+        return fmsg;
     }
 
 
