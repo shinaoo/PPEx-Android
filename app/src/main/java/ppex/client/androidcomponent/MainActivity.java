@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -255,6 +256,9 @@ public class MainActivity extends AppCompatActivity {
                 connections = conns;
                 connectionAdapter.setConnectios(connections);
                 connectionAdapter.notifyDataSetChanged();
+                break;
+            case THROUGN_CONNECT_END:
+                Log.e(TAG,"穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
                 break;
         }
     }
