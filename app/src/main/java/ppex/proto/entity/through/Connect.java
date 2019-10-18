@@ -16,6 +16,7 @@ public class Connect {
         RETURN_HOLE_PUNCH,
         REVERSE,
         FORWARD,
+        RETURN_FORWARD,
 
         CONNECTING,                                //暂时保留，client发给Server，可以检测两边连接状态
         CONNECTED,
