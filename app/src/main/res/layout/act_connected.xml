@@ -30,10 +30,10 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btn_connected_getfile"
+            android:id="@+id/btn_connected_getfiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/getfile"></Button>
+            android:text="@string/getfiles"></Button>
     </LinearLayout>
 
     <ListView

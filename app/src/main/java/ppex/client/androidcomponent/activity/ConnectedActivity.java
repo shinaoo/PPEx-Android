@@ -3,7 +3,6 @@ package ppex.client.androidcomponent.activity;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -14,6 +13,8 @@ import java.io.File;
 import java.util.Arrays;
 
 import ppex.client.R;
+import ppex.client.androidcomponent.handler.CallBack;
+import ppex.client.androidcomponent.handler.RequestHandler;
 import ppex.client.entity.Client;
 
 public class ConnectedActivity extends Activity {
@@ -34,6 +35,7 @@ public class ConnectedActivity extends Activity {
         getIntentValue();
         findIds();
         setListener();
+        setRequestHandler();
     }
 
     @Override
@@ -51,7 +53,7 @@ public class ConnectedActivity extends Activity {
 
     private void findIds(){
         lv_showfiles = findViewById(R.id.lv_connected_showfiles);
-        btn_getfiles = findViewById(R.id.btn_connected_getfile);
+        btn_getfiles = findViewById(R.id.btn_connected_getfiles);
         tv_back = findViewById(R.id.tv_connected_back);
         tv_title = findViewById(R.id.tv_connected_title);
 
@@ -63,10 +65,21 @@ public class ConnectedActivity extends Activity {
             this.finish();
         });
         btn_getfiles.setOnClickListener(v ->{
-            //目前暂定获取test.pdf
+            //请求获取目录
+            RequestHandler.getDefault().sendRequest("/getfiles", new CallBack() {
+                @Override
+                public void callback(Object data) {
 
+                }
+            });
         });
 
+    }
+
+    private void setRequestHandler(){
+        RequestHandler.getDefault().setChannel(Client.getInstance().ch);
+
+        RequestHandler.getDefault().setTargetConnection(Client.getInstance().connectedMaps.get(0).getConnections().get(1));
     }
 
 

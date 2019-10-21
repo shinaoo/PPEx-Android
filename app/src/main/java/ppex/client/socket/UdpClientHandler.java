@@ -14,6 +14,7 @@ import ppex.client.handlers.ProbeTypeMsgHandler;
 import ppex.client.handlers.ThroughTypeMsgHandler;
 import ppex.proto.MessageHandler;
 import ppex.proto.StandardMessageHandler;
+import ppex.proto.entity.through.Connect;
 import ppex.proto.type.PingTypeMsg;
 import ppex.proto.type.TypeMessage;
 import ppex.utils.MessageUtil;
@@ -82,6 +83,11 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 //        pingTypeMsg.setType(PingTypeMsg.Type.HEART.ordinal());
 //        pingTypeMsg.setContent(JSON.toJSONString(Client.getInstance().localConnection));
         ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
+        if (Client.getInstance().connectedMaps.size() != 0){
+            if (Client.getInstance().connectedMaps.get(0).getConnectType() != Connect.TYPE.FORWARD.ordinal()){
+                ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg,Client.getInstance().connectedMaps.get(0).getConnections().get(1).inetSocketAddress));
+            }
+        }
     }
     private void handleReadIdle(){
         Log.d(TAG,"client handle read idle");

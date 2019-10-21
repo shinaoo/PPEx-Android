@@ -6,7 +6,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.SocketUtils;
-import org.apache.log4j.Logger;
 import ppex.proto.Message;
 import ppex.proto.type.*;
 
@@ -14,7 +13,6 @@ import java.net.InetSocketAddress;
 
 public class MessageUtil {
 
-    private static Logger LOGGER = Logger.getLogger(MessageUtil.class);
 
     public static ByteBuf msg2ByteBuf(Message msg) {
         ByteBuf msgBuf = Unpooled.directBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);

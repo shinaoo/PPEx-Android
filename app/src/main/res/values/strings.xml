@@ -13,4 +13,5 @@
     <string name="back">back</string>
 
     <string name="getfile">GetFile</string>
+    <string name="getfiles">GetFiles</string>
 </resources>
