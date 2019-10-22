@@ -15,7 +15,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,10 +24,8 @@ import ppex.client.R;
 import ppex.client.androidcomponent.adapter.FilesAdapter;
 import ppex.client.androidcomponent.busevent.BusEvent;
 import ppex.client.androidcomponent.entity.Files;
-import ppex.client.androidcomponent.handler.CallBack;
 import ppex.client.androidcomponent.handler.client.RequestClient;
 import ppex.client.entity.Client;
-import ppex.proto.entity.through.Connection;
 
 public class ConnectedActivity extends Activity {
 
@@ -62,7 +59,7 @@ public class ConnectedActivity extends Activity {
     }
 
     private void getIntentValue(){
-        connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
+//        connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
         RequestClient.getDefault();
     }
 
@@ -103,6 +100,7 @@ public class ConnectedActivity extends Activity {
     public void handleMainThreadEvent(BusEvent event) {
         switch (BusEvent.Type.getByValue(event.getType())) {
             case FILE_GETFILES:
+                Log.e(TAG,TAG+"get files response:" + event.getData());
                 String fileStr = (String) event.getData();
                 files= JSON.parseArray(fileStr, Files.class);
                 filesAdapter.setFiles(files);

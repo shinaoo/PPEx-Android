@@ -1,5 +1,7 @@
 package ppex.client.handlers;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -17,6 +19,8 @@ import java.net.InetSocketAddress;
 
 public class TxtTypeMsgHandler implements TypeMessageHandler {
 
+    private static String TAG = TxtTypeMsgHandler.class.getName();
+
     public TxtTypeMsgHandler() {
         ActionHandler.getInstance();
         ActionHandler.getInstance().addPrefixActionHandle("/file",new FileHandler());
@@ -26,11 +30,13 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
 
     @Override
     public void handleTypeMessage(ChannelHandlerContext ctx, TypeMessage typeMessage, InetSocketAddress fromAddress) throws Exception {
+        Log.e(TAG,"TxtTypeMsgHandle handle typemsg:" + typeMessage.getBody());
         TxtTypeMsg txtTypeMsg = JSON.parseObject(typeMessage.getBody(),TxtTypeMsg.class);
         handlerTxtTypeMsg(ctx,txtTypeMsg,fromAddress);
     }
 
     private void handlerTxtTypeMsg(ChannelHandlerContext ctx,TxtTypeMsg tmsg,InetSocketAddress fromaddress){
+        Log.e(TAG,"TxtTypeMsgHandle handle txtmsg:" + tmsg.getContent());
         if (tmsg.isReq()){
             //需要处理Request变成Response返回去
             tmsg.setReq(false);

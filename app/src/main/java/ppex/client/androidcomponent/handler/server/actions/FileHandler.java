@@ -1,6 +1,7 @@
 package ppex.client.androidcomponent.handler.server.actions;
 
 import android.os.Environment;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
@@ -18,6 +19,8 @@ import ppex.proto.entity.txt.Response;
 
 public class FileHandler implements RequestHandle {
 
+    private static String TAG = FileHandler.class.getName();
+
     private File sdFile = null;
 
     public FileHandler() {
@@ -26,6 +29,7 @@ public class FileHandler implements RequestHandle {
 
     @Override
     public Response handleRequest(Request request) {
+        Log.e(TAG,"file handler hanle " + request.getBody());
         AndroidRequest request1 = RequestUtil.request2AndroidRequest(request);
         if (!request1.getAction().startsWith("/file"))
             return null;
@@ -36,6 +40,7 @@ public class FileHandler implements RequestHandle {
     }
 
     private Response handleGetFiles(AndroidRequest request){
+        Log.e(TAG,"file handler handle:" + request.getAction());
         String path = request.getParams().get("path");
         if (path == null)
             return null;

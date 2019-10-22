@@ -1,5 +1,7 @@
 package ppex.client.androidcomponent.handler.server;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +14,8 @@ import ppex.proto.entity.txt.RequestHandle;
 import ppex.proto.entity.txt.Response;
 
 public class ActionHandler implements RequestHandle {
+
+    private static String TAG = ActionHandler.class.getName();
 
     private Map<String, RequestHandle> handles = new HashMap<>();
     private List<String> prefixActions = new ArrayList<>();
@@ -34,6 +38,7 @@ public class ActionHandler implements RequestHandle {
 
     @Override
     public Response handleRequest(Request request) {
+        Log.e(TAG,"ActionHandler handleRequest:" + request.getBody());
         AndroidRequest request1 = RequestUtil.request2AndroidRequest(request);
         String prefix = prefixActions.stream().filter(pre -> request1.getAction().startsWith(pre)).findFirst().get();
         if (prefix == null)

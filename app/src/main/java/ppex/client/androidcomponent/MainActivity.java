@@ -44,6 +44,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.internal.SocketUtils;
 import ppex.client.R;
+import ppex.client.androidcomponent.activity.ConnectedActivity;
 import ppex.client.androidcomponent.adapter.ConnectionAdapter;
 import ppex.client.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
             ThroughProcess.getInstance().connectPeer(Client.getInstance().ch,connections.get(position));
             Client.getInstance().targetConnection =connections.get(position);
+//            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
         });
     }
 
@@ -247,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case THROUGN_CONNECT_END:
                 Log.e(TAG,"穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
+                startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
                 break;
         }
     }
