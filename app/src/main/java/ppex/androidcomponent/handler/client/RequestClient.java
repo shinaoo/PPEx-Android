@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.handler.client;
+package ppex.androidcomponent.handler.client;
 
 import android.os.Environment;
 
@@ -10,9 +10,9 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import io.netty.channel.Channel;
-import ppex.client.androidcomponent.handler.AndroidRequest;
-import ppex.client.androidcomponent.handler.CallBack;
-import ppex.client.androidcomponent.utils.RequestUtil;
+import ppex.androidcomponent.handler.AndroidRequest;
+import ppex.androidcomponent.handler.CallBack;
+import ppex.androidcomponent.utils.RequestUtil;
 import ppex.client.entity.Client;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.Connection;

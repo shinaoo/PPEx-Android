@@ -1,11 +1,11 @@
-package ppex.client.androidcomponent.utils;
+package ppex.androidcomponent.utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import ppex.client.androidcomponent.handler.AndroidRequest;
+import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.proto.entity.txt.Request;
 
 public class RequestUtil {

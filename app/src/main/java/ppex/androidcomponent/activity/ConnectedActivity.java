@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.activity;
+package ppex.androidcomponent.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 import ppex.client.R;
-import ppex.client.androidcomponent.adapter.FilesAdapter;
-import ppex.client.androidcomponent.busevent.BusEvent;
-import ppex.client.androidcomponent.entity.Files;
-import ppex.client.androidcomponent.handler.client.RequestClient;
+import ppex.androidcomponent.adapter.FilesAdapter;
+import ppex.androidcomponent.busevent.BusEvent;
+import ppex.androidcomponent.entity.Files;
+import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.entity.Client;
 
 public class ConnectedActivity extends Activity {

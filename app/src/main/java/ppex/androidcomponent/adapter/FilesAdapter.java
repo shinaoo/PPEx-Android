@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.adapter;
+package ppex.androidcomponent.adapter;
 
 import android.content.Context;
 import android.view.View;
@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ppex.client.R;
-import ppex.client.androidcomponent.entity.Files;
-import ppex.proto.entity.through.Connection;
-import ppex.utils.Constants;
+import ppex.androidcomponent.entity.Files;
 
 public class FilesAdapter extends BaseAdapter {
 

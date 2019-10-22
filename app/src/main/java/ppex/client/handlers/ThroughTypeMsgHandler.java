@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import io.netty.channel.ChannelHandlerContext;
-import ppex.client.androidcomponent.busevent.BusEvent;
+import ppex.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
 import ppex.client.process.ThroughProcess;
 import ppex.proto.entity.through.Connect;

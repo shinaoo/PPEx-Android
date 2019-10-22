@@ -20,14 +20,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".androidcomponent.MainActivity">
+        <activity android:name="ppex.androidcomponent.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".androidcomponent.activity.ConnectedActivity"></activity>
+        <activity android:name="ppex.androidcomponent.activity.ConnectedActivity"></activity>
     </application>
 
 </manifest>

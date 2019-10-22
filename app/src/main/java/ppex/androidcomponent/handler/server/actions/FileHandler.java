@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.handler.server.actions;
+package ppex.androidcomponent.handler.server.actions;
 
 import android.os.Environment;
 import android.util.Log;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import ppex.client.androidcomponent.entity.Files;
-import ppex.client.androidcomponent.handler.AndroidRequest;
-import ppex.client.androidcomponent.utils.RequestUtil;
+import ppex.androidcomponent.entity.Files;
+import ppex.androidcomponent.handler.AndroidRequest;
+import ppex.androidcomponent.utils.RequestUtil;
 import ppex.proto.entity.txt.Request;
 import ppex.proto.entity.txt.RequestHandle;
 import ppex.proto.entity.txt.Response;

@@ -1,10 +1,10 @@
-package ppex.client.androidcomponent.handler.client;
+package ppex.androidcomponent.handler.client;
 
 import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
 
-import ppex.client.androidcomponent.busevent.BusEvent;
+import ppex.androidcomponent.busevent.BusEvent;
 
 import ppex.proto.entity.txt.Response;
 import ppex.proto.entity.txt.ResponseHandle;

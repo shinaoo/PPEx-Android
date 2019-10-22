@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent;
+package ppex.androidcomponent;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,27 +9,19 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.alibaba.fastjson.JSON;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,15 +30,14 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.internal.SocketUtils;
 import ppex.client.R;
-import ppex.client.androidcomponent.activity.ConnectedActivity;
-import ppex.client.androidcomponent.adapter.ConnectionAdapter;
-import ppex.client.androidcomponent.busevent.BusEvent;
+import ppex.androidcomponent.activity.ConnectedActivity;
+import ppex.androidcomponent.adapter.ConnectionAdapter;
+import ppex.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;

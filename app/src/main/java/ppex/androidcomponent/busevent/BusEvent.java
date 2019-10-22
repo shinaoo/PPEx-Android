@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.busevent;
+package ppex.androidcomponent.busevent;
 
 public class BusEvent {
     private int type;

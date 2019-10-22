@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.handler;
+package ppex.androidcomponent.handler;
 
 import java.util.Map;
 

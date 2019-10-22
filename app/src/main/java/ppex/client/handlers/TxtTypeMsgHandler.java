@@ -5,9 +5,9 @@ import android.util.Log;
 import com.alibaba.fastjson.JSON;
 
 import io.netty.channel.ChannelHandlerContext;
-import ppex.client.androidcomponent.handler.client.ResponseHandler;
-import ppex.client.androidcomponent.handler.server.ActionHandler;
-import ppex.client.androidcomponent.handler.server.actions.FileHandler;
+import ppex.androidcomponent.handler.client.ResponseHandler;
+import ppex.androidcomponent.handler.server.ActionHandler;
+import ppex.androidcomponent.handler.server.actions.FileHandler;
 import ppex.proto.entity.txt.Request;
 import ppex.proto.entity.txt.Response;
 import ppex.proto.type.TxtTypeMsg;

@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.handler.server;
+package ppex.androidcomponent.handler.server;
 
 import android.util.Log;
 
@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ppex.client.androidcomponent.handler.AndroidRequest;
-import ppex.client.androidcomponent.utils.RequestUtil;
+import ppex.androidcomponent.handler.AndroidRequest;
+import ppex.androidcomponent.utils.RequestUtil;
 import ppex.proto.entity.txt.Request;
 import ppex.proto.entity.txt.RequestHandle;
 import ppex.proto.entity.txt.Response;

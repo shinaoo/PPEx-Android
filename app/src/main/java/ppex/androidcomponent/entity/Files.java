@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.entity;
+package ppex.androidcomponent.entity;
 
 public class Files {
     private String name;

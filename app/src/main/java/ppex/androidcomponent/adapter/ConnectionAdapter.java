@@ -1,4 +1,4 @@
-package ppex.client.androidcomponent.adapter;
+package ppex.androidcomponent.adapter;
 
 import android.content.Context;
 import android.view.View;

@@ -38,7 +38,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
         try {
-            Log.d(TAG,"client channel read0 from:" + datagramPacket.sender().toString());
             msgHandler.handleDatagramPacket(channelHandlerContext, datagramPacket);
         } catch (Exception e) {
             e.printStackTrace();
