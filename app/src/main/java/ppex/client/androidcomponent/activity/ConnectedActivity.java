@@ -59,7 +59,7 @@ public class ConnectedActivity extends Activity {
     }
 
     private void getIntentValue(){
-//        connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
+        connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
         RequestClient.getDefault();
     }
 

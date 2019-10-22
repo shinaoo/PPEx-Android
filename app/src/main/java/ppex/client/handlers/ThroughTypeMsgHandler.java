@@ -13,7 +13,6 @@ import io.netty.channel.ChannelHandlerContext;
 import ppex.client.androidcomponent.busevent.BusEvent;
 import ppex.client.entity.Client;
 import ppex.client.process.ThroughProcess;
-import ppex.proto.Message;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.ConnectMap;
 import ppex.proto.entity.through.Connection;
@@ -121,6 +120,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
     }
 
     private void handleConnecCONN(ChannelHandlerContext ctx,ThroughTypeMsg ttmsg,InetSocketAddress fromaddress) throws Exception{
+        Log.e(TAG,"client handle connectconn:" + ttmsg.getContent());
         Connect connect = JSON.parseObject(ttmsg.getContent(),Connect.class);
         if (connect.getType() == Connect.TYPE.CONNECT_PING.ordinal()){
             Log.e(TAG,"Client handle connect_ping msg:" + connect.toString());
