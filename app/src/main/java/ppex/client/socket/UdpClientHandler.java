@@ -77,7 +77,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     }
 
     private void handleWriteIdle(ChannelHandlerContext ctx){
-        Log.d(TAG,"client handle write idle");
         //心跳包
         PingTypeMsg pingTypeMsg = new PingTypeMsg();
 //        pingTypeMsg.setType(PingTypeMsg.Type.HEART.ordinal());
