@@ -46,7 +46,7 @@ public class RequestClient {
     public void setTargetConnection(Connection connection){
         this.targetConnection = connection;
     }
-    private void setConnectType(int connectType){
+    public void setConnectType(int connectType){
         this.connectType = connectType;
     }
 
@@ -61,6 +61,8 @@ public class RequestClient {
         requests.add(androidRequest);
         Request request1 = RequestUtil.androidRequest2Request(androidRequest);
         TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+        txtTypeMsg.setReq(true);
+        txtTypeMsg.setFrom(Client.getInstance().localConnection.inetSocketAddress);
         txtTypeMsg.setTo(targetConnection.inetSocketAddress);
         txtTypeMsg.setContent(JSON.toJSONString(request1));
         if (connectType == Connect.TYPE.FORWARD.ordinal()){

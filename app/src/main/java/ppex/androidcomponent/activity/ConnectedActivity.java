@@ -95,6 +95,7 @@ public class ConnectedActivity extends Activity {
     private void setRequestHandler(){
         RequestClient.getDefault().setChannel(Client.getInstance().ch);
         RequestClient.getDefault().setTargetConnection(Client.getInstance().connectedMaps.get(0).getConnections().get(1));
+        RequestClient.getDefault().setConnectType(connectType);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
