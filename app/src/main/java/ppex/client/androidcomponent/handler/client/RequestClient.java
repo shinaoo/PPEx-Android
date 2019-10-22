@@ -1,8 +1,18 @@
-package ppex.client.androidcomponent.handler;
+package ppex.client.androidcomponent.handler.client;
+
+import android.os.Environment;
 
 import com.alibaba.fastjson.JSON;
 
+import java.io.File;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import io.netty.channel.Channel;
+import ppex.client.androidcomponent.handler.AndroidRequest;
+import ppex.client.androidcomponent.handler.CallBack;
+import ppex.client.androidcomponent.utils.RequestUtil;
 import ppex.client.entity.Client;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.entity.through.Connection;
@@ -10,19 +20,23 @@ import ppex.proto.entity.txt.Request;
 import ppex.proto.type.TxtTypeMsg;
 import ppex.utils.MessageUtil;
 
-public class RequestHandler {
-    private static RequestHandler requestHandler = null;
+public class RequestClient {
+    private static RequestClient requestClient = null;
 
     private Channel channel;
     private Connection targetConnection;
     private int connectType;
 
-    private RequestHandler() {}
+    File sdFile = null;
 
-    public static RequestHandler getDefault(){
-        if (requestHandler == null)
-            requestHandler = new RequestHandler();
-        return requestHandler;
+    private RequestClient() {
+        sdFile = Environment.getExternalStorageDirectory();
+    }
+
+    public static RequestClient getDefault(){
+        if (requestClient == null)
+            requestClient = new RequestClient();
+        return requestClient;
     }
 
     //要设置Channel以及目的地
@@ -36,14 +50,16 @@ public class RequestHandler {
         this.connectType = connectType;
     }
 
+    private Queue<AndroidRequest> requests = new LinkedBlockingQueue<>(10);
+
     public void sendRequest(String request){
 
     }
     //同步。目前没有异步
-    public void sendRequest(String request,CallBack callBack){
-        Request request1 = new Request();
-        request1.setHead(request);
-        request1.setBody("");
+    public void sendRequest(String request, CallBack callBack, Map<String,String> params){
+        AndroidRequest androidRequest = new AndroidRequest(request,callBack,params);
+        requests.add(androidRequest);
+        Request request1 = RequestUtil.androidRequest2Request(androidRequest);
         TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
         txtTypeMsg.setTo(targetConnection.inetSocketAddress);
         txtTypeMsg.setContent(JSON.toJSONString(request1));
@@ -53,4 +69,5 @@ public class RequestHandler {
             channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg,targetConnection.inetSocketAddress));
         }
     }
+
 }

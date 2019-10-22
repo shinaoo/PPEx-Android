@@ -44,6 +44,9 @@ public class Client {
     public InetSocketAddress SERVER2P2;
 
     //0是直接发送消息给targetConnection.1是中断,将消息发给Server1
+    public boolean isConnecting = false;
+    public boolean isConnected = false;
+    public int connectType = -1;
     public Connection localConnection;
     public Connection targetConnection;
 

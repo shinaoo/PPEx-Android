@@ -8,6 +8,10 @@ public class BusEvent {
         DETECT_END_OF(0),
         THROUGH_GET_INFO(1),
         THROUGN_CONNECT_END(2),
+
+
+        //暂时设置一些测试
+        FILE_GETFILES(3),
         ;
         private int value;
         Type(int value){

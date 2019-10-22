@@ -61,6 +61,10 @@ public class FilesAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public void setFiles(List<Files> files) {
+        this.files = files;
+    }
+
     public final class Holder{
         public ImageView iv_showtype;
         public TextView tv_showname;
