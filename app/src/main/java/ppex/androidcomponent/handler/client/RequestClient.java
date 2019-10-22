@@ -1,6 +1,7 @@
 package ppex.androidcomponent.handler.client;
 
 import android.os.Environment;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
@@ -21,6 +22,8 @@ import ppex.proto.type.TxtTypeMsg;
 import ppex.utils.MessageUtil;
 
 public class RequestClient {
+    private static String TAG = RequestClient.class.getName();
+
     private static RequestClient requestClient = null;
 
     private Channel channel;
@@ -65,6 +68,7 @@ public class RequestClient {
         txtTypeMsg.setFrom(Client.getInstance().localConnection.inetSocketAddress);
         txtTypeMsg.setTo(targetConnection.inetSocketAddress);
         txtTypeMsg.setContent(JSON.toJSONString(request1));
+        Log.e(TAG,"txtTYpemsg:" + txtTypeMsg.getContent());
         if (connectType == Connect.TYPE.FORWARD.ordinal()){
             channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
         }else{

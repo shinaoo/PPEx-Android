@@ -46,7 +46,7 @@ public class FileHandler implements RequestHandle {
             return null;
         Response response = new Response();
         response.setHead(request.getAction()+"\r\n");
-        if ("".equals(path)){
+        if ("root".equals(path)){
             File[] sdfiles = sdFile.listFiles();
             List<Files> responsefile = new ArrayList<>();
             Arrays.stream(sdfiles).forEach(file -> {

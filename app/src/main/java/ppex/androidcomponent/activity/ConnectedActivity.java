@@ -80,7 +80,7 @@ public class ConnectedActivity extends Activity {
         btn_getfiles.setOnClickListener(v ->{
             //请求获取目录
             Map<String,String> params = new HashMap<>();
-            params.put("path","");
+            params.put("path","root");
             RequestClient.getDefault().sendRequest("/file/getfiles",null,params);
         });
 
