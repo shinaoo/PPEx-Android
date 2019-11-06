@@ -2,52 +2,90 @@ package ppex.client.socket;
 
 import android.util.Log;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.timeout.IdleStateEvent;
 import ppex.client.entity.Client;
-import ppex.client.handlers.FileTypeMsgHandler;
 import ppex.client.handlers.PongTypeMsgHandler;
 import ppex.client.handlers.ProbeTypeMsgHandler;
 import ppex.client.handlers.ThroughTypeMsgHandler;
 import ppex.client.handlers.TxtTypeMsgHandler;
+import ppex.proto.msg.Message;
 import ppex.proto.msg.MessageHandler;
 import ppex.proto.msg.StandardMessageHandler;
-import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.entity.Connection;
 import ppex.proto.msg.type.PingTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
+import ppex.proto.pcp.IChannelManager;
+import ppex.proto.pcp.PcpListener;
+import ppex.proto.rudp.IAddrManager;
+import ppex.proto.rudp.Output;
+import ppex.proto.rudp.ResponseListener;
+import ppex.proto.rudp.RudpPack;
+import ppex.utils.Constants;
 import ppex.utils.MessageUtil;
+import ppex.utils.tpool.DisruptorExectorPool;
+import ppex.utils.tpool.IMessageExecutor;
 
 
-public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket> implements ResponseListener {
 
     private static String TAG = UdpClientHandler.class.getName();
 
     private MessageHandler msgHandler;
 
-    public UdpClientHandler() {
-        msgHandler = new StandardMessageHandler();
+    private PcpListener pcpListener;
+    private DisruptorExectorPool disruptorExectorPool;
+    private IChannelManager channelManager;
+    private IAddrManager addrManager;
+
+    public UdpClientHandler(PcpListener pcpListener, DisruptorExectorPool disruptorExectorPool, IAddrManager addrManager) {
+        msgHandler = StandardMessageHandler.New();
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_PROBE.ordinal(), new ProbeTypeMsgHandler());
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_THROUGH.ordinal(), new ThroughTypeMsgHandler());
-        ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal(),new PongTypeMsgHandler());
-        ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_FILE.ordinal(),new FileTypeMsgHandler());
-        ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_TXT.ordinal(),new TxtTypeMsgHandler());
+        ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal(), new PongTypeMsgHandler());
+        ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_TXT.ordinal(), new TxtTypeMsgHandler());
+
+        this.pcpListener = pcpListener;
+        this.disruptorExectorPool = disruptorExectorPool;
+        this.addrManager = addrManager;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
         try {
-            msgHandler.handleDatagramPacket(channelHandlerContext, datagramPacket);
+            Channel channel = channelHandlerContext.channel();
+//            LOGGER.info("ClientHandler channel local:" + channel.localAddress() + " remote:" + channel.remoteAddress());
+//            PcpPack pcpPack = channelManager.get(channel,datagramPacket.sender());
+//            if (pcpPack == null){
+//                Connection connection = new Connection("",datagramPacket.sender(),"From1", Constants.NATTYPE.UNKNOWN.ordinal(),channel);
+//                IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
+//                PcpOutput pcpOutput = new ClientOutput();
+//                pcpPack = new PcpPack(0x1,null,executor,connection,pcpOutput);
+//                channelManager.New(channel,pcpPack);
+//            }
+//            pcpPack.read(datagramPacket.content());
+
+            RudpPack rudpPack = addrManager.get(datagramPacket.sender());
+            if (rudpPack != null) {
+                rudpPack.getConnection().setAddress(datagramPacket.sender());
+                rudpPack.getConnection().setChannel(channelHandlerContext.channel());
+                rudpPack.read(datagramPacket.content());
+                return;
+            }
+            IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
+            Connection connection = new Connection("", datagramPacket.sender(), "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), channel);
+            Output output = new ClientOutput();
+            rudpPack = new RudpPack(output, connection, executor, null);
+            addrManager.New(datagramPacket.sender(), rudpPack);
+            rudpPack.read(datagramPacket.content());
+
+//            msgHandler.handleDatagramPacket(channelHandlerContext, datagramPacket);
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        Message msg = MessageUtil.packet2Msg(datagramPacket);
-//        if (msg != null){
-//            System.out.println("client recv:" + msg.toString() + " from:" + datagramPacket.sender());
-//        }else{
-//            System.out.println("client recv error");
-//        }
     }
 
     @Override
@@ -76,22 +114,23 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
         }
     }
 
-    private void handleWriteIdle(ChannelHandlerContext ctx){
+    private void handleWriteIdle(ChannelHandlerContext ctx) {
         //心跳包
         PingTypeMsg pingTypeMsg = new PingTypeMsg();
 //        pingTypeMsg.setType(PingTypeMsg.Type.HEART.ordinal());
 //        pingTypeMsg.setContent(JSON.toJSONString(Client.getInstance().localConnection));
         ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
-        if (Client.getInstance().connectedMaps.size() != 0){
-            if (Client.getInstance().connectedMaps.get(0).getConnectType() != Connect.TYPE.FORWARD.ordinal()){
-                ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg,Client.getInstance().connectedMaps.get(0).getConnections().get(1).inetSocketAddress));
-            }
-        }
     }
-    private void handleReadIdle(){
-        Log.d(TAG,"client handle read idle");
+
+    private void handleReadIdle() {
     }
-    private void handleAllIdle(){
-        Log.d(TAG,"client handle all idle");
+
+    private void handleAllIdle() {
+    }
+
+
+    @Override
+    public void onResponse(RudpPack rudpPack, Message message) {
+        Log.e(TAG, "onresponse:" + message);
     }
 }

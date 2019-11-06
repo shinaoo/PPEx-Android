@@ -65,14 +65,14 @@ public class RequestClient {
         Request request1 = RequestUtil.androidRequest2Request(androidRequest);
         TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
         txtTypeMsg.setReq(true);
-        txtTypeMsg.setFrom(Client.getInstance().localConnection.inetSocketAddress);
-        txtTypeMsg.setTo(targetConnection.inetSocketAddress);
+        txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
+        txtTypeMsg.setTo(targetConnection.getAddress());
         txtTypeMsg.setContent(JSON.toJSONString(request1));
         Log.e(TAG,"txtTYpemsg:" + txtTypeMsg.getContent());
         if (connectType == Connect.TYPE.FORWARD.ordinal()){
             channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
         }else{
-            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg,targetConnection.inetSocketAddress));
+            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg,targetConnection.getAddress()));
         }
     }
 

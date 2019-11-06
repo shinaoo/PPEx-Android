@@ -6,6 +6,8 @@ import java.net.InetSocketAddress;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
@@ -26,7 +28,9 @@ public class MessageUtil {
     private static ByteBufAllocator byteBufAllocator = ByteBufAllocator.DEFAULT;
 
     public static ByteBuf msg2ByteBuf(Message msg) {
-        ByteBuf msgBuf = Unpooled.directBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);
+        ByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
+        ByteBuf msgBuf = allocator.ioBuffer(msg.getLength()+Message.VERSIONLENGTH+Message.CONTENTLENGTH+1);
+        msgBuf.writeLongLE(msg.getMsgid());
         msgBuf.writeByte(msg.getVersion());
         msgBuf.writeInt(msg.getLength());
         byte[] bytes = msg.getContent().getBytes(CharsetUtil.UTF_8);
@@ -35,15 +39,17 @@ public class MessageUtil {
     }
 
     public static Message bytebuf2Msg(ByteBuf byteBuf) {
-        if (byteBuf.readableBytes() < (Message.VERSIONLENGTH + Message.CONTENTLENGTH)) {
+        if (byteBuf.readableBytes() < (Message.VERSIONLENGTH + Message.CONTENTLENGTH + Message.ID_LEN)) {
             return null;
         }
+        long msgid = byteBuf.readLongLE();
         byte version = byteBuf.readByte();
         if (version != Constants.MSG_VERSION) {
             return null;
         }
         int length = byteBuf.readInt();
-        Message msg = new Message();
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setMsgid(msgid);
         msg.setVersion(version);
         msg.setLength(length);
         byte[] bytes = new byte[length];
@@ -75,7 +81,7 @@ public class MessageUtil {
     }
 
     public static DatagramPacket typemsg2Packet(TypeMessage typeMessage, InetSocketAddress inetSocketAddress) {
-        Message msg = new Message();
+        Message msg = new Message(LongIDUtil.getCurrentId());
         msg.setContent(typeMessage);
         return msg2Packet(msg, inetSocketAddress);
     }
@@ -144,6 +150,58 @@ public class MessageUtil {
     }
 
     /**
+     * ----------------------------------各类TypeMessage转ByteBuf部分----------------------------------------------------
+     **/
+
+    public static ByteBuf typemsg2Bytebuf(TypeMessage typeMessage) {
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg2ByteBuf(msg);
+    }
+
+    public static ByteBuf probemsg2Bytebuf(ProbeTypeMsg msg) {
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_PROBE.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    public static ByteBuf throughmsg2Bytebuf(ThroughTypeMsg msg) {
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_THROUGH.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    public static ByteBuf pingMsg2Bytebuf(PingTypeMsg msg) {
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PING.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    public static ByteBuf pongMsg2Bytebuf(PongTypeMsg msg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    public static ByteBuf fileMsg2Packet(FileTypeMsg msg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_FILE.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    public static ByteBuf txtMsg2packet(TxtTypeMsg msg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_TXT.ordinal());
+        typeMessage.setBody(JSON.toJSONString(msg));
+        return typemsg2Bytebuf(typeMessage);
+    }
+
+    /**
      * ----------------------------------DatagramPacket转各类TypeMessage部分----------------------------------------------------
      **/
     public static Message packet2Msg(DatagramPacket packet) {
@@ -193,6 +251,27 @@ public class MessageUtil {
         return tmsg;
     }
 
+    /**
+     * ------------------------------------Message转各类TypeMessage部分------------------------------------------
+     */
+    public static TxtTypeMsg msg2TxtMsg(Message msg){
+        TypeMessage typeMessage = JSON.parseObject(msg.getContent(), TypeMessage.class);
+        TxtTypeMsg tmsg = JSON.parseObject(typeMessage.getBody(),TxtTypeMsg.class);
+        return tmsg;
+    }
+
+
+    /**
+     * --------------------------------各类TypeMessage转Message部分-----------------------------------
+     */
+    public static Message txtmsg2Msg(TxtTypeMsg ttmsg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setBody(JSON.toJSONString(ttmsg));
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_TXT.ordinal());
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
 
     /**
      * ----------------------------------------------生成探测ProbeTypeMsg部分----------------------------------------------------
@@ -217,6 +296,26 @@ public class MessageUtil {
         probeTypeMsg.setType(ProbeTypeMsg.Type.FROM_CLIENT.ordinal());
         probeTypeMsg.setStep(ByteUtil.int2byteArr(ProbeTypeMsg.Step.TWO.ordinal())[3]);
         return probeTypeMsg;
+    }
+
+    /**
+     * ---------------------------测试
+     */
+    public static ByteBuf makeTestBytebuf(String content){
+        byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
+        ByteBuf msgBuf = Unpooled.directBuffer(bytes.length);
+        msgBuf.writeBytes(bytes);
+        return msgBuf;
+    }
+
+    public static Message makeTestStr2Msg(String content){
+        TxtTypeMsg ttmsg = new TxtTypeMsg();
+        ttmsg.setContent(content);
+        return txtmsg2Msg(ttmsg);
+    }
+
+    public static String bytebuf2Str(ByteBuf buf){
+        return ByteBufUtil.hexDump(buf);
     }
 
 

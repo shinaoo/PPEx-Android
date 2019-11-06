@@ -20,12 +20,12 @@ import ppex.proto.msg.entity.through.RecvInfo;
 import ppex.proto.msg.type.ThroughTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
 import ppex.proto.msg.type.TypeMessageHandler;
+import ppex.proto.rudp.RudpPack;
 import ppex.utils.MessageUtil;
 
 public class ThroughTypeMsgHandler implements TypeMessageHandler {
     private static String TAG = ThroughTypeMsgHandler.class.getName();
 
-    @Override
     public void handleTypeMessage(ChannelHandlerContext ctx, TypeMessage msg, InetSocketAddress address) throws Exception {
 //        ThroughTypeMsg ttmsg = MessageUtil.packet2ThroughMsg(packet);
         Log.d(TAG,"client handle ThrougnTypemsg:" + msg.getBody());
@@ -84,8 +84,8 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
                 //多发几次都可以
-                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
-                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).getAddress()));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).getAddress()));
 
                 connect.setType(Connect.TYPE.RETURN_HOLE_PUNCH.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
@@ -95,12 +95,12 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 //开始给B 发ping消息
                 connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
-                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(1).inetSocketAddress));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(1).getAddress()));
             }else if (connect.getType() == Connect.TYPE.REVERSE.ordinal()){
                 Log.e(TAG,"Client handle reverse msg:" + connect.toString());
                 connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
-                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).inetSocketAddress));
+                ctx.writeAndFlush(MessageUtil.throughmsg2Packet(ttmsg,connections.get(0).getAddress()));
             }else if (connect.getType() == Connect.TYPE.FORWARD.ordinal()){
                 Log.e(TAG,"Client handle forward msg:" + connect.toString());
                 connect.setType(Connect.TYPE.RETURN_FORWARD.ordinal());
@@ -154,5 +154,8 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
     }
 
 
+    @Override
+    public void handleTypeMessage(RudpPack rudpPack, TypeMessage tmsg) {
 
+    }
 }

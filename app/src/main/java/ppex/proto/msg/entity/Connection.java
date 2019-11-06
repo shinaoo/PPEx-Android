@@ -1,39 +1,26 @@
 package ppex.proto.msg.entity;
 
-import android.util.Log;
-
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.DatagramPacket;
-import ppex.proto.msg.Message;
-import ppex.utils.MessageUtil;
-
 import java.net.InetSocketAddress;
 
+import io.netty.channel.Channel;
+
 public class Connection {
-    private static String TAG = Connection.class.getName();
 
     public String macAddress;                              //使用mac地址来识别每个Connection
     public String peerName;
-    public InetSocketAddress inetSocketAddress;
+    public InetSocketAddress address;
     public int natType;
-    public transient ChannelHandlerContext ctx;
+    private transient Channel channel;
 
-    public Connection() {
-    }
-
-    public Connection(String macAddress, InetSocketAddress inetSocketAddress, String peerName, int natType) {
+    public Connection(String macAddress,InetSocketAddress address,String peerName,int natType,Channel channel) {
         this.macAddress = macAddress;
-        this.inetSocketAddress = inetSocketAddress;
+        this.address = address;
         this.peerName = peerName;
         this.natType = natType;
+        this.channel = channel;
     }
 
-    public Connection(ChannelHandlerContext ctx) {
-        this.ctx = ctx;
-        if (null != ctx.channel() && null != ctx.channel().remoteAddress()) {
-            this.inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            Log.d(TAG,"---->new:inetsocketaddress:" + inetSocketAddress.toString());
-        }
+    public Connection() {
     }
 
     public String getMacAddress() {
@@ -48,21 +35,25 @@ public class Connection {
         this.peerName = peerName;
     }
 
-    public InetSocketAddress getInetSocketAddress() {
-        return this.inetSocketAddress;
-    }
-
-    public void sendMsg(Message msg) {
-        if (ctx != null) {
-            ctx.writeAndFlush(new DatagramPacket(MessageUtil.msg2ByteBuf(msg), inetSocketAddress));
-        } else {
-        }
+    public InetSocketAddress getAddress() {
+        return this.address;
     }
 
     public String getPeerName() {
         return peerName;
     }
 
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+
+    public void setAddress(InetSocketAddress address) {
+        this.address = address;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -77,9 +68,8 @@ public class Connection {
     @Override
     public String toString() {
         return "Connection{" +
-                "inetSocketAddress=" + inetSocketAddress.toString() +
-                ", ctx=" + ctx +
-                ", peerName='" + peerName + '\'' +
+                "inetSocketAddress=" + address.toString() +
+                ", ctx=, peerName='" + peerName + '\'' +
                 '}';
     }
 }

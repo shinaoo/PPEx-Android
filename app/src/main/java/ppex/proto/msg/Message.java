@@ -16,20 +16,23 @@ import ppex.utils.Constants;
  *----------------+-----------------+-----------------+
  *
  * 2019-10-9.加入msg id 64位和 current 64位和total 64位(未实现.todo)
- * -----8bits-----+-----64bits---+-----64bits----+----64bits-------+------32bits-------+-----content-----+
- * --    0x01   --+    msg id    +     current   +     total       +-- contentlength --+--   content   --+
- * ---------------+--------------+---------------+-----------------+-------------------+-----------------+
+ * +-----64bits---+-----64bits----+----64bits-------+------32bits-------+-----content-----+
+ * +    msg id    +     current   +     total       +-- contentlength --+--   content   --+
+ * +--------------+---------------+-----------------+-------------------+-----------------+
  *
  */
 public class Message {
+    public static final int ID_LEN = 8;
     public static final int VERSIONLENGTH = 1;
     public static final int CONTENTLENGTH = 4;
 
     private byte version;
+    private long msgid;
     private int length;
     private String content;
 
-    public Message() {
+    public Message(long msgid) {
+        this.msgid = msgid;
         this.version = Constants.MSG_VERSION;
     }
 
@@ -43,6 +46,14 @@ public class Message {
 
     public int getLength() {
         return length;
+    }
+
+    public long getMsgid() {
+        return msgid;
+    }
+
+    public void setMsgid(long msgid) {
+        this.msgid = msgid;
     }
 
     public void setLength(int length) {

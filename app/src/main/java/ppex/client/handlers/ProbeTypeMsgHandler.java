@@ -9,6 +9,7 @@ import ppex.client.process.DetectProcess;
 import ppex.proto.msg.type.ProbeTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
 import ppex.proto.msg.type.TypeMessageHandler;
+import ppex.proto.rudp.RudpPack;
 import ppex.utils.Constants;
 
 import java.net.InetSocketAddress;
@@ -18,7 +19,6 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
 
     private static String TAG = ProbeTypeMsgHandler.class.getName();
 
-    @Override
     public void handleTypeMessage(ChannelHandlerContext ctx, TypeMessage typeMessage, InetSocketAddress adress) throws Exception{
         if (typeMessage.getType() != TypeMessage.Type.MSG_TYPE_PROBE.ordinal())
             return;
@@ -85,4 +85,8 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
         }
     }
 
+    @Override
+    public void handleTypeMessage(RudpPack rudpPack, TypeMessage tmsg) {
+
+    }
 }

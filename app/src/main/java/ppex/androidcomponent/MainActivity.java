@@ -1,7 +1,5 @@
 package ppex.androidcomponent;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -26,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.appcompat.app.AppCompatActivity;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -34,17 +33,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.internal.SocketUtils;
-import ppex.client.R;
 import ppex.androidcomponent.activity.ConnectedActivity;
 import ppex.androidcomponent.adapter.ConnectionAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
+import ppex.client.R;
 import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;
+import ppex.client.socket.ClientAddrManager;
 import ppex.client.socket.UdpClientHandler;
 import ppex.proto.msg.entity.Connection;
+import ppex.proto.rudp.IAddrManager;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
+import ppex.utils.tpool.DisruptorExectorPool;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ConnectionAdapter connectionAdapter;
     private List<Connection> connections = new ArrayList<>();
+    private IAddrManager addrManager = ClientAddrManager.getInstance();
+    private DisruptorExectorPool disruptorExectorPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,8 +102,9 @@ public class MainActivity extends AppCompatActivity {
             Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
             Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
 
-            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().address,
-                    Client.getInstance().peerName, Client.getInstance().NAT_TYPE);
+//            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().address,
+//                    Client.getInstance().peerName, Client.getInstance().NAT_TYPE);
+            Connection connection = new Connection("",Client.getInstance().SERVER1,"Server1",Client.getInstance().NAT_TYPE,Client.getInstance().ch);
             Client.getInstance().localConnection = connection;
 //            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue(),""));
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
@@ -117,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initClient() {
+        disruptorExectorPool = new DisruptorExectorPool();
+        disruptorExectorPool.createDisruptorProcessor("1");
         Identity.INDENTITY = Identity.Type.CLIENT.ordinal();
         getLocalInetSocketAddress();
 
@@ -129,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         protected void initChannel(Channel channel) throws Exception {
                             channel.pipeline().addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
-                            channel.pipeline().addLast(new UdpClientHandler());
+                            channel.pipeline().addLast(new UdpClientHandler(null,disruptorExectorPool,addrManager));
                         }
                     });
 //                    .handler(new UdpClientHandler());

@@ -13,6 +13,7 @@ import ppex.proto.msg.entity.txt.Response;
 import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
 import ppex.proto.msg.type.TypeMessageHandler;
+import ppex.proto.rudp.RudpPack;
 import ppex.utils.MessageUtil;
 
 import java.net.InetSocketAddress;
@@ -28,7 +29,6 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
         ResponseHandler.getInstance();
     }
 
-    @Override
     public void handleTypeMessage(ChannelHandlerContext ctx, TypeMessage typeMessage, InetSocketAddress fromAddress) throws Exception {
         Log.e(TAG,"TxtTypeMsgHandle handle typemsg:" + typeMessage.getBody());
         TxtTypeMsg txtTypeMsg = JSON.parseObject(typeMessage.getBody(),TxtTypeMsg.class);
@@ -52,6 +52,8 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
     }
 
 
+    @Override
+    public void handleTypeMessage(RudpPack rudpPack, TypeMessage tmsg) {
 
-
+    }
 }
