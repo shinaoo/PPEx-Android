@@ -14,7 +14,7 @@ import io.netty.util.internal.SocketUtils;
 import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;
-import ppex.proto.entity.through.Connection;
+import ppex.proto.msg.entity.Connection;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
 

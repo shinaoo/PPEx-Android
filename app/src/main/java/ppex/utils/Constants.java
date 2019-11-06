@@ -5,6 +5,11 @@ import java.util.Arrays;
 public class Constants {
     public static byte MSG_VERSION = 1;
 
+    public static int MSG_ID_LEN = 32;
+    public static int MSG_CUR_LEN = 32;
+    public static int MSG_TOT_LEN = 32;
+    public static int MSG_HEAD = MSG_ID_LEN + MSG_CUR_LEN + MSG_TOT_LEN;
+
     public static int SEND_BUFSIZE=1024;
     public static int RECV_BUFSIZE=1024;
 

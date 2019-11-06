@@ -8,11 +8,11 @@ import io.netty.channel.ChannelHandlerContext;
 import ppex.androidcomponent.handler.client.ResponseHandler;
 import ppex.androidcomponent.handler.server.ActionHandler;
 import ppex.androidcomponent.handler.server.actions.FileHandler;
-import ppex.proto.entity.txt.Request;
-import ppex.proto.entity.txt.Response;
-import ppex.proto.type.TxtTypeMsg;
-import ppex.proto.type.TypeMessage;
-import ppex.proto.type.TypeMessageHandler;
+import ppex.proto.msg.entity.txt.Request;
+import ppex.proto.msg.entity.txt.Response;
+import ppex.proto.msg.type.TxtTypeMsg;
+import ppex.proto.msg.type.TypeMessage;
+import ppex.proto.msg.type.TypeMessageHandler;
 import ppex.utils.MessageUtil;
 
 import java.net.InetSocketAddress;

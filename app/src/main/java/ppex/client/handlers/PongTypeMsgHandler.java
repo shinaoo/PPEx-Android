@@ -4,8 +4,8 @@ import android.util.Log;
 
 import io.netty.channel.ChannelHandlerContext;
 
-import ppex.proto.type.TypeMessage;
-import ppex.proto.type.TypeMessageHandler;
+import ppex.proto.msg.type.TypeMessage;
+import ppex.proto.msg.type.TypeMessageHandler;
 
 import java.net.InetSocketAddress;
 

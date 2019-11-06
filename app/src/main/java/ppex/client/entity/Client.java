@@ -5,9 +5,9 @@ import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import ppex.proto.entity.through.Connect;
-import ppex.proto.entity.through.ConnectMap;
-import ppex.proto.entity.through.Connection;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.entity.through.ConnectMap;
+import ppex.proto.msg.entity.Connection;
 import ppex.utils.Constants;
 
 import java.net.InetSocketAddress;

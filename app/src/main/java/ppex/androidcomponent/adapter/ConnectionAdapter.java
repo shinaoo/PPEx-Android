@@ -9,7 +9,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import ppex.client.R;
-import ppex.proto.entity.through.Connection;
+import ppex.proto.msg.entity.Connection;
 import ppex.utils.Constants;
 
 public class ConnectionAdapter extends BaseAdapter {

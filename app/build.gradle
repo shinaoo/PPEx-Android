@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "ppex.client"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -36,5 +36,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation 'org.apache.logging.log4j:log4j:2.12.1'
+
+    implementation group: 'com.lmax', name: 'disruptor', version: '3.4.2'
+    implementation group: 'org.jctools', name: 'jctools-core', version: '2.1.2'
 
 }

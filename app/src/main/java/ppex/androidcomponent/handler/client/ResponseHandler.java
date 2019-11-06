@@ -6,8 +6,8 @@ import org.greenrobot.eventbus.EventBus;
 
 import ppex.androidcomponent.busevent.BusEvent;
 
-import ppex.proto.entity.txt.Response;
-import ppex.proto.entity.txt.ResponseHandle;
+import ppex.proto.msg.entity.txt.Response;
+import ppex.proto.msg.entity.txt.ResponseHandle;
 
 public class ResponseHandler implements ResponseHandle {
 

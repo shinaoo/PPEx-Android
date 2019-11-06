@@ -13,9 +13,9 @@ import java.util.List;
 import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.androidcomponent.utils.RequestUtil;
-import ppex.proto.entity.txt.Request;
-import ppex.proto.entity.txt.RequestHandle;
-import ppex.proto.entity.txt.Response;
+import ppex.proto.msg.entity.txt.Request;
+import ppex.proto.msg.entity.txt.RequestHandle;
+import ppex.proto.msg.entity.txt.Response;
 
 public class FileHandler implements RequestHandle {
 

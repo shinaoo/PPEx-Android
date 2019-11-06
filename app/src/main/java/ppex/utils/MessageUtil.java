@@ -1,18 +1,29 @@
 package ppex.utils;
 
 import com.alibaba.fastjson.JSON;
+
+import java.net.InetSocketAddress;
+
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.SocketUtils;
-import ppex.proto.Message;
-import ppex.proto.type.*;
-
-import java.net.InetSocketAddress;
+import ppex.proto.msg.Message;
+import ppex.proto.msg.type.FileTypeMsg;
+import ppex.proto.msg.type.PingTypeMsg;
+import ppex.proto.msg.type.PongTypeMsg;
+import ppex.proto.msg.type.ProbeTypeMsg;
+import ppex.proto.msg.type.ThroughTypeMsg;
+import ppex.proto.msg.type.TxtTypeMsg;
+import ppex.proto.msg.type.TypeMessage;
 
 public class MessageUtil {
 
+
+    //分配ByteBuf类
+    private static ByteBufAllocator byteBufAllocator = ByteBufAllocator.DEFAULT;
 
     public static ByteBuf msg2ByteBuf(Message msg) {
         ByteBuf msgBuf = Unpooled.directBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);
@@ -41,6 +52,16 @@ public class MessageUtil {
         msg.setContent(content);
         return msg;
     }
+
+//    public static List<ByteBuf> msg2ByteBuf(Message msg, InetSocketAddress inetSocketAddress, int mss){
+//        ByteBuf total = msg2ByteBuf(msg);
+//        long now = System.currentTimeMillis();
+//        if (total.readableBytes() <= mss){
+//
+//        }
+//
+//        total.readableBytes();
+//    }
 
     /**
      * -------------------------------------------各类TypeMessage转DatagramPacket部分---------------------------------------------------------
@@ -97,7 +118,7 @@ public class MessageUtil {
         return pingMsg2Packet(msg, SocketUtils.socketAddress(host, port));
     }
 
-    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg,String host,int port){
+    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, String host, int port){
         return pongMsg2Packet(msg,SocketUtils.socketAddress(host,port));
     }
 

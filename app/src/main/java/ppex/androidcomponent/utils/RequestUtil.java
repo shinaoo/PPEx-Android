@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import ppex.androidcomponent.handler.AndroidRequest;
-import ppex.proto.entity.txt.Request;
+import ppex.proto.msg.entity.txt.Request;
 
 public class RequestUtil {
     //将AndroidRequest转成Request

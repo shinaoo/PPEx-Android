@@ -12,11 +12,11 @@ import ppex.client.handlers.PongTypeMsgHandler;
 import ppex.client.handlers.ProbeTypeMsgHandler;
 import ppex.client.handlers.ThroughTypeMsgHandler;
 import ppex.client.handlers.TxtTypeMsgHandler;
-import ppex.proto.MessageHandler;
-import ppex.proto.StandardMessageHandler;
-import ppex.proto.entity.through.Connect;
-import ppex.proto.type.PingTypeMsg;
-import ppex.proto.type.TypeMessage;
+import ppex.proto.msg.MessageHandler;
+import ppex.proto.msg.StandardMessageHandler;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.type.PingTypeMsg;
+import ppex.proto.msg.type.TypeMessage;
 import ppex.utils.MessageUtil;
 
 

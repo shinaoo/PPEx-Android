@@ -15,10 +15,10 @@ import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.androidcomponent.handler.CallBack;
 import ppex.androidcomponent.utils.RequestUtil;
 import ppex.client.entity.Client;
-import ppex.proto.entity.through.Connect;
-import ppex.proto.entity.through.Connection;
-import ppex.proto.entity.txt.Request;
-import ppex.proto.type.TxtTypeMsg;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.entity.Connection;
+import ppex.proto.msg.entity.txt.Request;
+import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.utils.MessageUtil;
 
 public class RequestClient {

@@ -6,10 +6,10 @@ import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import ppex.client.entity.Client;
-import ppex.proto.entity.through.ConnectMap;
-import ppex.proto.entity.through.Connect;
-import ppex.proto.entity.through.Connection;
-import ppex.proto.type.ThroughTypeMsg;
+import ppex.proto.msg.entity.through.ConnectMap;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.entity.Connection;
+import ppex.proto.msg.type.ThroughTypeMsg;
 import ppex.utils.MessageUtil;
 
 import java.util.ArrayList;
