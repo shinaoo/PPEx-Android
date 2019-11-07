@@ -101,7 +101,7 @@ public class UdpClient {
             if (rudpPack == null) {
                 Connection connection = new Connection("", Client.getInstance().SERVER1, "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), ch);
                 Output output = new ClientOutput();
-                rudpPack = new RudpPack(output, connection, executor, null);
+                rudpPack = new RudpPack(output, connection, executor, null,null);
                 addrManager.New(Client.getInstance().SERVER1, rudpPack);
             }
 

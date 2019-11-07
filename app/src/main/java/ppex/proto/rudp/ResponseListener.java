@@ -1,7 +1,8 @@
 package ppex.proto.rudp;
 
+import io.netty.channel.ChannelHandlerContext;
 import ppex.proto.msg.Message;
 
 public interface ResponseListener {
-    void onResponse(RudpPack rudpPack, Message message);
+    default void onResponse(ChannelHandlerContext ctx, RudpPack rudpPack, Message message){}
 }

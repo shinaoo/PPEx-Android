@@ -1,16 +1,14 @@
 package ppex.proto.rudp;
 
+import java.util.Queue;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.util.Recycler;
-import org.apache.log4j.Logger;
 import ppex.proto.msg.Message;
 import ppex.utils.tpool.ITask;
 
-import java.util.Queue;
-
 public class RcvTask implements ITask {
 
-    private static Logger LOGGER = Logger.getLogger(RcvTask.class);
 
     private final Recycler.Handle<RcvTask> recyclerHandler;
     private static final Recycler<RcvTask> RECYCLER = new Recycler<RcvTask>() {
@@ -54,7 +52,7 @@ public class RcvTask implements ITask {
                     break;
                 if (rudpkg.getListener() == null)
                     break;
-                rudpkg.getListener().onResponse(rudpkg,msg);
+                rudpkg.getListener().onResponse(rudpkg.getCtx(),rudpkg,msg);
             }
             if (!rudpkg.getQueue_snd().isEmpty() && rudpkg.canSend(false)){
                 rudpkg.notifySendEvent();

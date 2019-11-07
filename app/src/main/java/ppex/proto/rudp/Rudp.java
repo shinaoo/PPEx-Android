@@ -1,21 +1,19 @@
 package ppex.proto.rudp;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.ListIterator;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.apache.log4j.Logger;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.MessageUtil;
 import ppex.utils.set.ReItrLinkedList;
 import ppex.utils.set.ReusableListIterator;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
-
 public class Rudp {
-    private static Logger LOGGER = Logger.getLogger(Rudp.class);
 
     public static final int NO_DEFINE_RTO = 30;
     public static final int RTO_MIN = 100;
@@ -246,7 +244,6 @@ public class Rudp {
             shrinkBuf();
             switch (cmd) {
                 case CMD_ACK:
-                    LOGGER.info("Rudp ACK msgid:" + msgid + " size of snd:" + queue_snd.size() + " size of ack:" + queue_sndack.size());
                     affirmAck(sn);
                     affirmFastAck(sn, ts);
                     break;

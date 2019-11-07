@@ -72,13 +72,14 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
             if (rudpPack != null) {
                 rudpPack.getConnection().setAddress(datagramPacket.sender());
                 rudpPack.getConnection().setChannel(channelHandlerContext.channel());
+                rudpPack.setCtx(channelHandlerContext);
                 rudpPack.read(datagramPacket.content());
                 return;
             }
             IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
             Connection connection = new Connection("", datagramPacket.sender(), "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), channel);
             Output output = new ClientOutput();
-            rudpPack = new RudpPack(output, connection, executor, null);
+            rudpPack = new RudpPack(output, connection, executor, null,channelHandlerContext);
             addrManager.New(datagramPacket.sender(), rudpPack);
             rudpPack.read(datagramPacket.content());
 
@@ -128,9 +129,9 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     private void handleAllIdle() {
     }
 
-
     @Override
-    public void onResponse(RudpPack rudpPack, Message message) {
-        Log.e(TAG, "onresponse:" + message);
+    public void onResponse(ChannelHandlerContext ctx, RudpPack rudpPack, Message message) {
+        Log.e(TAG,"onresponse:" + message.getContent());
+        msgHandler.handleMessage(ctx,rudpPack,addrManager,message);
     }
 }

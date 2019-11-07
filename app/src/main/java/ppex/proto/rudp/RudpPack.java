@@ -1,18 +1,17 @@
 package ppex.proto.rudp;
 
-import io.netty.buffer.ByteBuf;
-import org.apache.log4j.Logger;
 import org.jctools.queues.MpscArrayQueue;
 import org.jctools.queues.SpscArrayQueue;
+
+import java.util.Queue;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.tpool.IMessageExecutor;
 
-import java.util.Queue;
-
 public class RudpPack {
-
-    private static Logger LOGGER = Logger.getLogger(RudpPack.class);
 
     private final MpscArrayQueue<Message> queue_snd;
     private final Queue<ByteBuf> queue_rcv;
@@ -22,11 +21,12 @@ public class RudpPack {
     private Connection connection;
     private IMessageExecutor iMessageExecutor;
     private ResponseListener listener;
+    private ChannelHandlerContext ctx;
 
     private boolean isActive = true;
     private long lasRcvTime = System.currentTimeMillis(),timeout = 30 * 1000;
 
-    public RudpPack(Output output, Connection connection, IMessageExecutor iMessageExecutor,ResponseListener listener) {
+    public RudpPack(Output output, Connection connection, IMessageExecutor iMessageExecutor,ResponseListener listener,ChannelHandlerContext ctx) {
         this.output = output;
         this.connection = connection;
         this.iMessageExecutor = iMessageExecutor;
@@ -34,11 +34,11 @@ public class RudpPack {
         this.queue_rcv = new SpscArrayQueue<>(2 << 11);
         this.rudp = new Rudp(output, connection);
         this.listener = listener;
+        this.ctx = ctx;
     }
 
     public boolean write(Message msg){
         if (!queue_snd.offer(msg)){
-            LOGGER.info("rudppkg queue snd is full");
             return false;
         }
         notifySendEvent();
@@ -135,4 +135,11 @@ public class RudpPack {
         queue_rcv.forEach(buf-> buf.release());
     }
 
+    public ChannelHandlerContext getCtx() {
+        return ctx;
+    }
+
+    public void setCtx(ChannelHandlerContext ctx) {
+        this.ctx = ctx;
+    }
 }

@@ -20,6 +20,7 @@ import ppex.proto.msg.entity.through.RecvInfo;
 import ppex.proto.msg.type.ThroughTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
 import ppex.proto.msg.type.TypeMessageHandler;
+import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.RudpPack;
 import ppex.utils.MessageUtil;
 
@@ -155,7 +156,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
 
 
     @Override
-    public void handleTypeMessage(RudpPack rudpPack, TypeMessage tmsg) {
+    public void handleTypeMessage(ChannelHandlerContext ctx, RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
 
     }
 }

@@ -106,7 +106,7 @@ public class ThroughProcess {
                 connect.setContent("");
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //等待返回pong就确认建立连接
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.inetSocketAddress));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.getAddress()));
 
                 //发送给Server端，表明正在建立连接
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
@@ -130,7 +130,7 @@ public class ThroughProcess {
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //率先打洞
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.inetSocketAddress));
+                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg,connection.getAddress()));
 
                 //让server给B转发，由B 再通信
                 connect.setType(connectType.ordinal());

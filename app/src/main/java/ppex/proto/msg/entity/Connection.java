@@ -1,10 +1,11 @@
 package ppex.proto.msg.entity;
 
-import java.net.InetSocketAddress;
-
 import io.netty.channel.Channel;
 
+import java.net.InetSocketAddress;
+
 public class Connection {
+
 
     public String macAddress;                              //使用mac地址来识别每个Connection
     public String peerName;

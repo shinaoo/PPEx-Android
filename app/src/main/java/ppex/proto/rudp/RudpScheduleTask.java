@@ -2,14 +2,12 @@ package ppex.proto.rudp;
 
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
-import org.apache.log4j.Logger;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.tpool.DisruptorExectorPool;
 import ppex.utils.tpool.IMessageExecutor;
 import ppex.utils.tpool.ITask;
 
 public class RudpScheduleTask implements ITask,Runnable, TimerTask {
-    private Logger LOGGER = Logger.getLogger(RudpScheduleTask.class);
     private IMessageExecutor executor;
     private RudpPack rudpPack;
     private IAddrManager addrManager;
