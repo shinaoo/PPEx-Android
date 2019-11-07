@@ -12,6 +12,9 @@ public class BusEvent {
 
         //暂时设置一些测试
         FILE_GETFILES(3),
+
+        //文字
+        TXT_RESPONSE(4),
         ;
         private int value;
         Type(int value){

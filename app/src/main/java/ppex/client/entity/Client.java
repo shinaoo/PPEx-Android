@@ -8,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.entity.through.ConnectMap;
 import ppex.proto.msg.entity.Connection;
+import ppex.proto.rudp.IAddrManager;
 import ppex.utils.Constants;
 
 import java.net.InetSocketAddress;
@@ -36,6 +37,7 @@ public class Client {
     public String peerName = "client1";
     public InetSocketAddress address;
     public int NAT_TYPE = Constants.NATTYPE.UNKNOWN.ordinal();
+    public IAddrManager addrManager;
 
     public String local_address = null;
     public String MAC_ADDRESS=null;

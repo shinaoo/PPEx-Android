@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static String TAG = MainActivity.class.getName();
 
     private Button btn_getnattype, btn_getallpeers;
-    private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac;
+    private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac,tv_showrcvcontent;
     private ListView lv_showallpeers;
 
     private ConnectionAdapter connectionAdapter;
@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         tv_showlocalip = findViewById(R.id.tv_main_showlocalip);
         tv_showlocalmac = findViewById(R.id.tv_main_showlocalmac);
         lv_showallpeers = findViewById(R.id.lv_main_showallpeers);
+        tv_showrcvcontent = findViewById(R.id.tv_main_showrcvcontent);
     }
 
     private void setEventListener() {
@@ -165,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 rudpPack1 = new RudpPack(output,connection,executor1,udpClientHandler,null);
                 addrManager.New(Client.getInstance().SERVER2P1,rudpPack1);
             }
+            Client.getInstance().addrManager = addrManager;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -272,6 +274,9 @@ public class MainActivity extends AppCompatActivity {
             case THROUGN_CONNECT_END:
                 Log.e(TAG, "穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
                 startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
+                break;
+            case TXT_RESPONSE:
+                tv_showrcvcontent.setText((String)event.getData());
                 break;
         }
     }

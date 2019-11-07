@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -26,6 +27,11 @@ import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.entity.Client;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.type.TxtTypeMsg;
+import ppex.proto.rudp.Rudp;
+import ppex.proto.rudp.RudpPack;
+import ppex.utils.MessageUtil;
 
 public class ConnectedActivity extends Activity {
 
@@ -34,6 +40,8 @@ public class ConnectedActivity extends Activity {
     private ListView lv_showfiles;
     private Button btn_getfiles;
     private TextView tv_back,tv_title;
+    private Button btn_send;
+    private EditText et_content;
 
     private int connectType;
 
@@ -83,7 +91,21 @@ public class ConnectedActivity extends Activity {
             params.put("path","root");
             RequestClient.getDefault().sendRequest("/file/getfiles",null,params);
         });
-
+        btn_send.setOnClickListener(v ->{
+            String contetn = et_content.getText().toString();
+            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
+            txtTypeMsg.setTo(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
+            txtTypeMsg.setReq(true);
+            txtTypeMsg.setContent(contetn);
+            if(connectType == Connect.TYPE.FORWARD.ordinal()){
+                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+            }else{
+                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
+                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+            }
+        });
     }
 
     private void initComponent(){
