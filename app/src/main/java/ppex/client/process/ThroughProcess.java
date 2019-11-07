@@ -50,6 +50,7 @@ public class ThroughProcess {
         try {
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.SAVE_CONNINFO.ordinal());
+            Client.getInstance().localConnection.setAddress(Client.getInstance().address);
             throughTypeMsg.setContent(JSON.toJSONString(Client.getInstance().localConnection));
 //            this.channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
             RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);

@@ -10,6 +10,9 @@ public class RecvInfo {
         this.type = type;
     }
 
+    public RecvInfo() {
+    }
+
     public int type;
     public String recvinfos;
 
