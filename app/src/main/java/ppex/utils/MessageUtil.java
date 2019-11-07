@@ -29,7 +29,7 @@ public class MessageUtil {
 
     public static ByteBuf msg2ByteBuf(Message msg) {
         ByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
-        ByteBuf msgBuf = allocator.ioBuffer(msg.getLength()+Message.VERSIONLENGTH+Message.CONTENTLENGTH+1);
+        ByteBuf msgBuf = allocator.ioBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);
         msgBuf.writeLongLE(msg.getMsgid());
         msgBuf.writeByte(msg.getVersion());
         msgBuf.writeInt(msg.getLength());
@@ -124,29 +124,29 @@ public class MessageUtil {
         return pingMsg2Packet(msg, SocketUtils.socketAddress(host, port));
     }
 
-    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, String host, int port){
-        return pongMsg2Packet(msg,SocketUtils.socketAddress(host,port));
+    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, String host, int port) {
+        return pongMsg2Packet(msg, SocketUtils.socketAddress(host, port));
     }
 
-    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg,InetSocketAddress address){
+    public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, InetSocketAddress address) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
-        return typemsg2Packet(typeMessage,address);
+        return typemsg2Packet(typeMessage, address);
     }
 
-    public static DatagramPacket fileMsg2Packet(FileTypeMsg msg,InetSocketAddress address){
+    public static DatagramPacket fileMsg2Packet(FileTypeMsg msg, InetSocketAddress address) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_FILE.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
-        return typemsg2Packet(typeMessage,address);
+        return typemsg2Packet(typeMessage, address);
     }
 
-    public static DatagramPacket txtMsg2packet(TxtTypeMsg msg,InetSocketAddress address){
+    public static DatagramPacket txtMsg2packet(TxtTypeMsg msg, InetSocketAddress address) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_TXT.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
-        return typemsg2Packet(typeMessage,address);
+        return typemsg2Packet(typeMessage, address);
     }
 
     /**
@@ -180,21 +180,21 @@ public class MessageUtil {
         return typemsg2Bytebuf(typeMessage);
     }
 
-    public static ByteBuf pongMsg2Bytebuf(PongTypeMsg msg){
+    public static ByteBuf pongMsg2Bytebuf(PongTypeMsg msg) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
         return typemsg2Bytebuf(typeMessage);
     }
 
-    public static ByteBuf fileMsg2Packet(FileTypeMsg msg){
+    public static ByteBuf fileMsg2Packet(FileTypeMsg msg) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_FILE.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
         return typemsg2Bytebuf(typeMessage);
     }
 
-    public static ByteBuf txtMsg2packet(TxtTypeMsg msg){
+    public static ByteBuf txtMsg2packet(TxtTypeMsg msg) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_TXT.ordinal());
         typeMessage.setBody(JSON.toJSONString(msg));
@@ -233,30 +233,30 @@ public class MessageUtil {
         return pmsg;
     }
 
-    public static PongTypeMsg packet2Pongmsg(DatagramPacket packet){
+    public static PongTypeMsg packet2Pongmsg(DatagramPacket packet) {
         TypeMessage typeMessage = packet2Typemsg(packet);
-        PongTypeMsg pmsg = JSON.parseObject(typeMessage.getBody(),PongTypeMsg.class);
+        PongTypeMsg pmsg = JSON.parseObject(typeMessage.getBody(), PongTypeMsg.class);
         return pmsg;
     }
 
-    public static FileTypeMsg packet2FileMsg(DatagramPacket packet){
+    public static FileTypeMsg packet2FileMsg(DatagramPacket packet) {
         TypeMessage typeMessage = packet2Typemsg(packet);
-        FileTypeMsg fmsg = JSON.parseObject(typeMessage.getBody(),FileTypeMsg.class);
+        FileTypeMsg fmsg = JSON.parseObject(typeMessage.getBody(), FileTypeMsg.class);
         return fmsg;
     }
 
-    public static TxtTypeMsg packet2Txtmsg(DatagramPacket packet){
+    public static TxtTypeMsg packet2Txtmsg(DatagramPacket packet) {
         TypeMessage typeMessage = packet2Typemsg(packet);
-        TxtTypeMsg tmsg = JSON.parseObject(typeMessage.getBody(),TxtTypeMsg.class);
+        TxtTypeMsg tmsg = JSON.parseObject(typeMessage.getBody(), TxtTypeMsg.class);
         return tmsg;
     }
 
     /**
      * ------------------------------------Message转各类TypeMessage部分------------------------------------------
      */
-    public static TxtTypeMsg msg2TxtMsg(Message msg){
+    public static TxtTypeMsg msg2TxtMsg(Message msg) {
         TypeMessage typeMessage = JSON.parseObject(msg.getContent(), TypeMessage.class);
-        TxtTypeMsg tmsg = JSON.parseObject(typeMessage.getBody(),TxtTypeMsg.class);
+        TxtTypeMsg tmsg = JSON.parseObject(typeMessage.getBody(), TxtTypeMsg.class);
         return tmsg;
     }
 
@@ -264,7 +264,7 @@ public class MessageUtil {
     /**
      * --------------------------------各类TypeMessage转Message部分-----------------------------------
      */
-    public static Message txtmsg2Msg(TxtTypeMsg ttmsg){
+    public static Message txtmsg2Msg(TxtTypeMsg ttmsg) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setBody(JSON.toJSONString(ttmsg));
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_TXT.ordinal());
@@ -272,6 +272,34 @@ public class MessageUtil {
         msg.setContent(typeMessage);
         return msg;
     }
+
+    public static Message pongmsg2Msg(PongTypeMsg pongTypeMsg) {
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal());
+        typeMessage.setBody(JSON.toJSONString(pongTypeMsg));
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
+
+    public static Message probemsg2Msg(ProbeTypeMsg probeTypeMsg) {
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_PROBE.ordinal());
+        typeMessage.setBody(JSON.toJSONString(probeTypeMsg));
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
+
+    public static Message throughmsg2Msg(ThroughTypeMsg tmsg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_THROUGH.ordinal());
+        typeMessage.setBody(JSON.toJSONString(tmsg));
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
+
 
     /**
      * ----------------------------------------------生成探测ProbeTypeMsg部分----------------------------------------------------
@@ -301,20 +329,20 @@ public class MessageUtil {
     /**
      * ---------------------------测试
      */
-    public static ByteBuf makeTestBytebuf(String content){
+    public static ByteBuf makeTestBytebuf(String content) {
         byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
         ByteBuf msgBuf = Unpooled.directBuffer(bytes.length);
         msgBuf.writeBytes(bytes);
         return msgBuf;
     }
 
-    public static Message makeTestStr2Msg(String content){
+    public static Message makeTestStr2Msg(String content) {
         TxtTypeMsg ttmsg = new TxtTypeMsg();
         ttmsg.setContent(content);
         return txtmsg2Msg(ttmsg);
     }
 
-    public static String bytebuf2Str(ByteBuf buf){
+    public static String bytebuf2Str(ByteBuf buf) {
         return ByteBufUtil.hexDump(buf);
     }
 

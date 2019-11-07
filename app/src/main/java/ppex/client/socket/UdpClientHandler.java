@@ -24,6 +24,7 @@ import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.Output;
 import ppex.proto.rudp.ResponseListener;
 import ppex.proto.rudp.RudpPack;
+import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
 import ppex.utils.MessageUtil;
 import ppex.utils.tpool.DisruptorExectorPool;
@@ -56,6 +57,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
         try {
+            Log.e(TAG,"ClientHandler read from:" + datagramPacket.sender());
             Channel channel = channelHandlerContext.channel();
 //            LOGGER.info("ClientHandler channel local:" + channel.localAddress() + " remote:" + channel.remoteAddress());
 //            PcpPack pcpPack = channelManager.get(channel,datagramPacket.sender());
@@ -82,6 +84,8 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
             rudpPack = new RudpPack(output, connection, executor, null,channelHandlerContext);
             addrManager.New(datagramPacket.sender(), rudpPack);
             rudpPack.read(datagramPacket.content());
+//            RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
+//            DisruptorExectorPool.scheduleHashedWheel(scheduleTask, rudpPack.getInterval());
 
 //            msgHandler.handleDatagramPacket(channelHandlerContext, datagramPacket);
         } catch (Exception e) {
@@ -117,10 +121,10 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     private void handleWriteIdle(ChannelHandlerContext ctx) {
         //心跳包
-        PingTypeMsg pingTypeMsg = new PingTypeMsg();
+//        PingTypeMsg pingTypeMsg = new PingTypeMsg();
 //        pingTypeMsg.setType(PingTypeMsg.Type.HEART.ordinal());
 //        pingTypeMsg.setContent(JSON.toJSONString(Client.getInstance().localConnection));
-        ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
+//        ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
     }
 
     private void handleReadIdle() {

@@ -88,6 +88,21 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
 
     @Override
     public void handleTypeMessage(ChannelHandlerContext ctx, RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
-
+        if (tmsg.getType() != TypeMessage.Type.MSG_TYPE_PROBE.ordinal())
+            return;
+        ProbeTypeMsg pmsg = JSON.parseObject(tmsg.getBody(),ProbeTypeMsg.class);
+        pmsg.setFromInetSocketAddress(rudpPack.getConnection().getAddress());
+//        ProbeTypeMsg pmsg = MessageUtil.packet2Probemsg(packet);
+        if (pmsg.getType() == ProbeTypeMsg.Type.FROM_CLIENT.ordinal()){
+//            throw new Exception("Wrong ProbeTypeMsg:" + pmsg.toString());
+        }else if (pmsg.getType() == ProbeTypeMsg.Type.FROM_SERVER1.ordinal()){
+            handleClientFromServer1Msg(ctx,pmsg);
+        } else if (pmsg.getType() == ProbeTypeMsg.Type.FROM_SERVER2_PORT1.ordinal()){
+            handleClientFromServer2Port1Msg(ctx,pmsg);
+        }else if (pmsg.getType() == ProbeTypeMsg.Type.FROM_SERVER2_PORT2.ordinal()){
+            handleClientFromServer2Port2Msg(ctx,pmsg);
+        }else{
+//            throw new Exception("Unknown ProbeTypeMsg:" + pmsg.toString());
+        }
     }
 }

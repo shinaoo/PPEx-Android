@@ -41,12 +41,16 @@ import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;
 import ppex.client.socket.ClientAddrManager;
+import ppex.client.socket.ClientOutput;
 import ppex.client.socket.UdpClientHandler;
 import ppex.proto.msg.entity.Connection;
 import ppex.proto.rudp.IAddrManager;
+import ppex.proto.rudp.Output;
+import ppex.proto.rudp.RudpPack;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
 import ppex.utils.tpool.DisruptorExectorPool;
+import ppex.utils.tpool.IMessageExecutor;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Connection> connections = new ArrayList<>();
     private IAddrManager addrManager = ClientAddrManager.getInstance();
     private DisruptorExectorPool disruptorExectorPool;
+    private UdpClientHandler udpClientHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,25 +98,27 @@ public class MainActivity extends AppCompatActivity {
     private void setEventListener() {
         btn_getallpeers.setOnClickListener(v -> {
             ThroughProcess.getInstance().setChannel(Client.getInstance().ch);
+            ThroughProcess.getInstance().setAddrManager(addrManager);
             ThroughProcess.getInstance().sendSaveInfo();
             ThroughProcess.getInstance().getConnectionsFromServer(Client.getInstance().ch);
         });
         btn_getnattype.setOnClickListener(v -> {
             DetectProcess.getInstance().setChannel(Client.getInstance().ch);
+            DetectProcess.getInstance().setAddrManager(addrManager);
             DetectProcess.getInstance().startDetect();
             Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
             Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
 
 //            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().address,
 //                    Client.getInstance().peerName, Client.getInstance().NAT_TYPE);
-            Connection connection = new Connection("",Client.getInstance().SERVER1,"Server1",Client.getInstance().NAT_TYPE,Client.getInstance().ch);
+            Connection connection = new Connection("", Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().ch);
             Client.getInstance().localConnection = connection;
 //            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue(),""));
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
-            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch,connections.get(position));
-            Client.getInstance().targetConnection =connections.get(position);
+            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch, connections.get(position));
+            Client.getInstance().targetConnection = connections.get(position);
 //            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
         });
     }
@@ -129,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
         Client.getInstance().group = new NioEventLoopGroup(1);
         try {
+            udpClientHandler = new UdpClientHandler(null, disruptorExectorPool, addrManager);
             Client.getInstance().bootstrap = new Bootstrap();
             Client.getInstance().bootstrap.group(Client.getInstance().group).channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
@@ -136,11 +144,27 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         protected void initChannel(Channel channel) throws Exception {
                             channel.pipeline().addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
-                            channel.pipeline().addLast(new UdpClientHandler(null,disruptorExectorPool,addrManager));
+                            channel.pipeline().addLast(udpClientHandler);
                         }
                     });
 //                    .handler(new UdpClientHandler());
             Client.getInstance().ch = Client.getInstance().bootstrap.bind(Constants.PORT3).sync().channel();
+            RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
+            IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
+            if (rudpPack == null) {
+                Connection connection = new Connection("", Client.getInstance().SERVER1, "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), Client.getInstance().ch);
+                Output output = new ClientOutput();
+                rudpPack = new RudpPack(output, connection, executor, udpClientHandler, null);
+                addrManager.New(Client.getInstance().SERVER1, rudpPack);
+            }
+            IMessageExecutor executor1 = disruptorExectorPool.getAutoDisruptorProcessor();
+            RudpPack rudpPack1 = addrManager.get(Client.getInstance().SERVER2P1);
+            if (rudpPack1 == null){
+                Connection connection = new Connection("",Client.getInstance().SERVER2P1,"server2p1",Constants.NATTYPE.PUBLIC_NETWORK.ordinal(),Client.getInstance().ch);
+                Output output = new ClientOutput();
+                rudpPack1 = new RudpPack(output,connection,executor1,udpClientHandler,null);
+                addrManager.New(Client.getInstance().SERVER2P1,rudpPack1);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -246,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
                 connectionAdapter.notifyDataSetChanged();
                 break;
             case THROUGN_CONNECT_END:
-                Log.e(TAG,"穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
+                Log.e(TAG, "穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
                 startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
                 break;
         }
