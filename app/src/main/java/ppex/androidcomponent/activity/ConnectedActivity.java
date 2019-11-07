@@ -8,8 +8,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
-
 import com.alibaba.fastjson.JSON;
 
 import org.greenrobot.eventbus.EventBus;
@@ -21,15 +19,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ppex.client.R;
+import androidx.annotation.Nullable;
 import ppex.androidcomponent.adapter.FilesAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.client.RequestClient;
+import ppex.client.R;
 import ppex.client.entity.Client;
 import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.type.TxtTypeMsg;
-import ppex.proto.rudp.Rudp;
 import ppex.proto.rudp.RudpPack;
 import ppex.utils.MessageUtil;
 
