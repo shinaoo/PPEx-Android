@@ -57,7 +57,7 @@ public class ConnectionAdapter extends BaseAdapter {
         }
 
         Connection connection = (Connection) getItem(position);
-        holder.tv_shownetsocketaddress.setText(connection.getAddress().toString());
+        holder.tv_shownetsocketaddress.setText(connection.getAddress() == null ? "" : connection.getAddress().toString());
         holder.tv_showpeername.setText(connection.getPeerName());
         holder.tv_showmacaddress.setText(connection.getMacAddress());
         holder.tv_shownattype.setText(Constants.getNatStrByValue(connection.natType));
