@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
 //            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().address,
 //                    Client.getInstance().peerName, Client.getInstance().NAT_TYPE);
-            Connection connection = new Connection("", Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().ch);
+            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().ch);
             Client.getInstance().localConnection = connection;
 //            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue(),""));
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
