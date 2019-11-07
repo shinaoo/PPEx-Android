@@ -77,6 +77,8 @@ public class ConnectedActivity extends Activity {
         btn_getfiles = findViewById(R.id.btn_connected_getfiles);
         tv_back = findViewById(R.id.tv_connected_back);
         tv_title = findViewById(R.id.tv_connected_title);
+        btn_send = findViewById(R.id.btn_connected_send);
+        et_content = findViewById(R.id.et_connected_content);
 
         tv_title.setText(Client.getInstance().targetConnection.getMacAddress());
     }
