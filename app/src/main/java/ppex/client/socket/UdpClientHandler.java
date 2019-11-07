@@ -57,7 +57,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
         try {
-            Log.e(TAG,"ClientHandler read from:" + datagramPacket.sender());
             Channel channel = channelHandlerContext.channel();
 //            LOGGER.info("ClientHandler channel local:" + channel.localAddress() + " remote:" + channel.remoteAddress());
 //            PcpPack pcpPack = channelManager.get(channel,datagramPacket.sender());
