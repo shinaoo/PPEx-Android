@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
-            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch, connections.get(position));
+            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch, connections.get(position),addrManager);
             Client.getInstance().targetConnection = connections.get(position);
 //            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
         });

@@ -10,13 +10,18 @@ import java.util.List;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import ppex.client.entity.Client;
+import ppex.client.socket.ClientOutput;
 import ppex.proto.msg.entity.Connection;
 import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.entity.through.ConnectMap;
 import ppex.proto.msg.type.ThroughTypeMsg;
 import ppex.proto.rudp.IAddrManager;
+import ppex.proto.rudp.Output;
 import ppex.proto.rudp.RudpPack;
+import ppex.utils.Constants;
 import ppex.utils.MessageUtil;
+import ppex.utils.tpool.DisruptorExectorPool;
+import ppex.utils.tpool.IMessageExecutor;
 
 public class ThroughProcess {
 
@@ -90,7 +95,7 @@ public class ThroughProcess {
         }
     }
 
-    public void connectPeer(Channel channel, Connection connection) {
+    public void connectPeer(Channel channel, Connection connection,IAddrManager addrManager) {
         Log.d(TAG, "client connect peer");
         try {
 //            ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
@@ -116,56 +121,96 @@ public class ThroughProcess {
             ConnectMap connectMap = new ConnectMap(connectType.ordinal(), connections);
             Client.getInstance().connectingMaps.add(connectMap);
 
+            //Rudppack
+            RudpPack rudpPack;
+
             if (connectType == Connect.TYPE.DIRECT) {
                 connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
                 connect.setContent("");
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //等待返回pong就确认建立连接
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, connection.getAddress()));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, connection.getAddress()));
+                rudpPack = addrManager.get(connection.getAddress());
+                if (rudpPack == null){
+                    DisruptorExectorPool disruptorExectorPool = new DisruptorExectorPool();
+                    disruptorExectorPool.createDisruptorProcessor("1");
+                    IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
+//                    Connection con = new Connection("", connections.get(0).getAddress(), "other", Constants.NATTYPE.SYMMETIC_NAT.ordinal(), ctx.channel());
+                    connection.setChannel(channel);
+                    Output output = new ClientOutput();
+                    rudpPack = new RudpPack(output, connection, executor, null,null);
+                    addrManager.New(connection.getAddress(), rudpPack);
+                }
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 //发送给Server端，表明正在建立连接
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
-
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else if (connectType == Connect.TYPE.HOLE_PUNCH) {
                 connect.setType(connectType.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //先将消息发给服务，由服务转发给target connection打洞
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else if (connectType == Connect.TYPE.REVERSE) {
                 //首先向B 打洞
                 connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //率先打洞
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, connection.getAddress()));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, connection.getAddress()));
+                rudpPack = addrManager.get(connection.getAddress());
+                if (rudpPack == null){
+                    DisruptorExectorPool disruptorExectorPool = new DisruptorExectorPool();
+                    disruptorExectorPool.createDisruptorProcessor("1");
+                    IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
+//                    Connection con = new Connection("", connections.get(0).getAddress(), "other", Constants.NATTYPE.SYMMETIC_NAT.ordinal(), ctx.channel());
+                    connection.setChannel(channel);
+                    Output output = new ClientOutput();
+                    rudpPack = new RudpPack(output, connection, executor, null,null);
+                    addrManager.New(connection.getAddress(), rudpPack);
+                }
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 //让server给B转发，由B 再通信
                 connect.setType(connectType.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else if (connectType == Connect.TYPE.FORWARD) {
                 connect.setType(Connect.TYPE.FORWARD.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+//                channel.writeAndFlush(MessageUtil.throughmsg2Packet(throughTypeMsg, Client.getInstance().SERVER1));
+                rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else {
                 throw new Exception("unknown connect operate:" + connectionsStr);
             }
