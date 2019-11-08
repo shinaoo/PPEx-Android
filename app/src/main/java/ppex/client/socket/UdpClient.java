@@ -20,6 +20,7 @@ import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.internal.SocketUtils;
 import ppex.client.entity.Client;
 import ppex.proto.msg.Message;
@@ -68,7 +69,7 @@ public class UdpClient {
             bootstrap.handler(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel channel) throws Exception {
-//                    channel.pipeline().addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
+                    channel.pipeline().addLast(new IdleStateHandler(0, 7, 0, TimeUnit.SECONDS));
                     channel.pipeline().addLast(udpClientHandler);
                 }
             });

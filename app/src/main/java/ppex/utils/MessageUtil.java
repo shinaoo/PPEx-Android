@@ -282,6 +282,15 @@ public class MessageUtil {
         return msg;
     }
 
+    public static Message pingMsg2Msg(PingTypeMsg pingTypeMsg){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_HEART_PING.ordinal());
+        typeMessage.setBody(JSON.toJSONString(pingTypeMsg));
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
+
     public static Message probemsg2Msg(ProbeTypeMsg probeTypeMsg) {
         TypeMessage typeMessage = new TypeMessage();
         typeMessage.setType(TypeMessage.Type.MSG_TYPE_PROBE.ordinal());

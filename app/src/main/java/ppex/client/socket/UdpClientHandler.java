@@ -120,10 +120,11 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     private void handleWriteIdle(ChannelHandlerContext ctx) {
         //心跳包
-//        PingTypeMsg pingTypeMsg = new PingTypeMsg();
-//        pingTypeMsg.setType(PingTypeMsg.Type.HEART.ordinal());
-//        pingTypeMsg.setContent(JSON.toJSONString(Client.getInstance().localConnection));
+        PingTypeMsg pingTypeMsg = new PingTypeMsg();
 //        ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
+        addrManager.getAll().forEach( rudpPack -> {
+            rudpPack.write(MessageUtil.pingMsg2Msg(pingTypeMsg));
+        });
     }
 
     private void handleReadIdle() {
