@@ -6,20 +6,16 @@ import com.alibaba.fastjson.JSON;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.net.InetSocketAddress;
-
 import io.netty.channel.ChannelHandlerContext;
 import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.handler.client.ResponseHandler;
 import ppex.androidcomponent.handler.server.ActionHandler;
 import ppex.androidcomponent.handler.server.actions.FileHandler;
-import ppex.proto.msg.Message;
 import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
 import ppex.proto.msg.type.TypeMessageHandler;
 import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.RudpPack;
-import ppex.utils.MessageUtil;
 
 public class TxtTypeMsgHandler implements TypeMessageHandler {
 
