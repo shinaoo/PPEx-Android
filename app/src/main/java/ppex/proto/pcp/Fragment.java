@@ -5,26 +5,31 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.Recycler;
 
 public class Fragment {
-    private final Recycler.Handle<Fragment> recyclerHandler;
-    private static final Recycler<Fragment> RECYCLER = new Recycler<Fragment>() {
-        @Override
-        protected Fragment newObject(Handle<Fragment> handle) {
-            return new Fragment(handle);
-        }
-    };
+//    private final Recycler.Handle<Fragment> recyclerHandler;
+//    private static final Recycler<Fragment> RECYCLER = new Recycler<Fragment>() {
+//        @Override
+//        protected Fragment newObject(Handle<Fragment> handle) {
+//            return new Fragment(handle);
+//        }
+//    };
 
-    private Fragment(Recycler.Handle<Fragment> recyclerHandler) {
-        this.recyclerHandler = recyclerHandler;
+//    private Fragment(Recycler.Handle<Fragment> recyclerHandler) {
+//        this.recyclerHandler = recyclerHandler;
+//    }
+
+
+    public Fragment() {
     }
 
     public static Fragment createFragment(ByteBuf data) {
-        Fragment fragment = RECYCLER.get();
+//        Fragment fragment = RECYCLER.get();
+        Fragment fragment = new Fragment();
         fragment.data = data;
         return fragment;
     }
 
     public static Fragment createFragment(ByteBufAllocator allocator, int size) {
-        Fragment fragment = RECYCLER.get();
+        Fragment fragment = new Fragment();
         if (size == 0) {
             fragment.data = allocator.ioBuffer(0, 0);
         } else {
@@ -36,7 +41,7 @@ public class Fragment {
     public void recycler(boolean releaseBuffer) {
         conv = 0;
         cmd = 0;
-//        frgid = 0;
+        frgid = 0;
         wnd = 0;
         ts = 0;
         sn = 0;
@@ -49,12 +54,12 @@ public class Fragment {
         if (releaseBuffer)
             data.release();
         data = null;
-        recyclerHandler.recycle(this);
+//        recyclerHandler.recycle(this);
     }
 
     public int conv;
     public byte cmd;                       //命令
-//    public short frgid;                    //message分片后的fragmentid
+    public short frgid;                    //message分片后的fragmentid
     public int wnd;                        //剩余接收窗口大小
     public long ts;                        //message发送的时间戳
     public long sn;                        //message分片fragment的序号

@@ -132,7 +132,11 @@ public class RudpPack {
 
     public void release(){
         rudp.release();
-        queue_rcv.forEach(buf-> buf.release());
+//        queue_rcv.forEach(buf-> buf.release());
+        for (int i = 0;i < queue_rcv.size();i++){
+            ByteBuf buf = queue_rcv.poll();
+            buf.release();
+        }
     }
 
     public ChannelHandlerContext getCtx() {

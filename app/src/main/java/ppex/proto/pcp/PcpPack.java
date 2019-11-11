@@ -3,14 +3,13 @@ package ppex.proto.pcp;
 import org.jctools.queues.MpscArrayQueue;
 import org.jctools.queues.SpscArrayQueue;
 
+import java.util.Queue;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.socket.DatagramPacket;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.MessageUtil;
 import ppex.utils.tpool.IMessageExecutor;
-
-import java.util.Queue;
 
 public class PcpPack {
 
@@ -30,6 +29,7 @@ public class PcpPack {
         sndList = new MpscArrayQueue<>(2 << 11);
         rcvList = new SpscArrayQueue<>(2 << 11);
         this.iMessageExecutor = iMessageExecutor;
+        this.pcpListener = pcpListener;
     }
 
     public boolean write(Message msg){
@@ -69,11 +69,15 @@ public class PcpPack {
     }
 
     public void read(ByteBuf buf){
-        this.rcvList.add(buf);
+        this.rcvList.add(buf.readRetainedSlice(buf.readableBytes()));
         notifyReadEvent();
     }
-    public void read(DatagramPacket pkt){
-        read(pkt.content());
+
+    public void input(ByteBuf data,long current) throws Exception{
+        input(data,true,current);
+    }
+    private void input(ByteBuf data,boolean regular,long current){
+        int ret = pcp.input(data,regular,current);
     }
 
     protected void notifyWriteEvent() {
@@ -82,8 +86,9 @@ public class PcpPack {
     }
 
     protected void notifyReadEvent() {
-        RecvTask recvTask = RecvTask.New(this);
-        this.iMessageExecutor.execute(recvTask);
+//        LOGGER.info("PcpPack notifyReadEvent");
+//        RecvTask recvTask = RecvTask.New(this);
+//        this.iMessageExecutor.execute(recvTask);
     }
 
     public MpscArrayQueue<ByteBuf> getSndList() {
@@ -104,5 +109,22 @@ public class PcpPack {
     }
     public int getInterval(){
         return pcp.getInterval();
+    }
+
+    public PcpListener getPcpListener() {
+        return pcpListener;
+    }
+
+    public boolean canRecv(){
+        return pcp.canRecv();
+    }
+    public ByteBuf mergeReceive(){
+        return pcp.mergeRecv();
+    }
+    public boolean checkFlush(){
+        return pcp.checkFlush();
+    }
+    public boolean isFastFlush(){
+        return pcp.isFastFlush();
     }
 }

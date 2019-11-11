@@ -40,6 +40,7 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
                 Connection connection = rudpPack.getConnection();
 //                connection.getChannel().eventLoop().execute(()-> addrManager.Del(connection.getAddress()));
                 rudpPack.release();
+                this.addrManager.Del(rudpPack);
                 return;
             }
             //            long next = pcpPack.flush(now);
@@ -49,7 +50,7 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
 //                pcpPack.notifyWriteEvent();
 //            }
             long next = rudpPack.flush(now);
-            DisruptorExectorPool.scheduleHashedWheel(this,next);
+            DisruptorExectorPool.scheduleHashedWheel(this,now+next);
             if (!rudpPack.getQueue_snd().isEmpty() && rudpPack.canSend(false)){
                 rudpPack.notifySendEvent();
             }

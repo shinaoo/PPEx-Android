@@ -1,17 +1,8 @@
 package ppex.proto.msg.type;
 
-import io.netty.channel.ChannelHandlerContext;
-import ppex.proto.rudp.IAddrManager;
-import ppex.proto.rudp.RudpPack;
-
 import java.net.InetSocketAddress;
 
-public class ProbeTypeMsg implements TypeMessageHandler {
-
-    @Override
-    public void handleTypeMessage(ChannelHandlerContext ctx, RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
-
-    }
+public class ProbeTypeMsg {
 
     public enum Type {
         FROM_CLIENT,

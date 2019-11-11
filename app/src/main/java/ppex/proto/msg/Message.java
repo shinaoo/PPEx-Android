@@ -15,6 +15,9 @@ import ppex.utils.Constants;
  * --    0x01   --+--contentlength--+--   content   --+
  *----------------+-----------------+-----------------+
  *
+ *
+ *
+ *
  * 2019-10-9.加入msg id 64位和 current 64位和total 64位(未实现.todo)
  * +-----64bits---+-----64bits----+----64bits-------+------32bits-------+-----content-----+
  * +    msg id    +     current   +     total       +-- contentlength --+--   content   --+

@@ -1,13 +1,14 @@
 package ppex.proto.pcp;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.ListIterator;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.set.ReItrLinkedList;
 import ppex.utils.set.ReusableListIterator;
-
-import java.util.Iterator;
-import java.util.LinkedList;
 
 public class Pcp {
     /**
@@ -60,7 +61,7 @@ public class Pcp {
 
     public static final int IKCP_WND_RCV = 32;
 
-    public static final int IKCP_MTU_DEF = 1459;
+    public static final int IKCP_MTU_DEF = 1474;
 
     public static final int IKCP_INTERVAL = 100;
 
@@ -87,7 +88,7 @@ public class Pcp {
     //conv 会话,mtu最大传输单元大小,mss最大分节大小.mtu减去头部分
     private int conv;
     private int mtu = IKCP_MTU_DEF;
-    private int mss = this.mtu - IKCP_HEAD;
+    private int mss = this.mtu - IKCP_OVERHEAD;
     //snd_una 已发送但未确认,snd_nxt下次发送下标,rcv_nxt,下次接收下标
     private long snd_una, snd_nxt, rcv_nxt;
     //ts_recent,ts_lastack 上次ack时间,ts_ssthresh 慢启动门限
@@ -101,7 +102,7 @@ public class Pcp {
     private int snd_wnd = IKCP_WND_SND;
     private int rcv_wnd = IKCP_WND_RCV;
     private int rmt_wnd = IKCP_WND_RCV;
-    private int cwnd, probe;
+    private int cwnd=IKCP_WND_SND, probe;
     //current 当前时间,interval 间隔,ts_flush 发送时间戳,
     private int interval = IKCP_INTERVAL;
     private int ts_flush = IKCP_INTERVAL;
@@ -114,7 +115,7 @@ public class Pcp {
     //拥塞控制量
     private int incr;
     //是否关闭拥塞控制窗口
-    private boolean nocwnd;
+    private boolean nocwnd=false;
     //快速重传,超过几个ack就重传.
     private int fastresend;
     //当前开始时间戳
@@ -146,6 +147,7 @@ public class Pcp {
 
     private PcpOutput pcpOutput;
     private Connection connection;
+    private boolean fastFlush = true;
 
     public Pcp(int conv, PcpOutput pcpOutput, Connection connection) {
         this.conv = conv;
@@ -169,6 +171,7 @@ public class Pcp {
         for (int i = 0; i < count; i++) {
             int size = len > mss ? mss : len;
             Fragment frg = Fragment.createFragment(buf.readRetainedSlice(size));
+            frg.frgid = (short) (count - i - 1);
             sndQueue.add(frg);
             len = buf.readableBytes();
         }
@@ -180,6 +183,7 @@ public class Pcp {
     }
 
     public long flush(boolean ackOnly, long current) {
+//        LOGGER.info("PCP flush ackonly:" + ackOnly + " current:" + current);
         current = current - startTicks;
         Fragment fragment = Fragment.createFragment(byteBufAllocator, 0);
         fragment.conv = conv;
@@ -247,27 +251,27 @@ public class Pcp {
             probe_wait = 0;
         }
 
-        if ((probe & IKCP_ASK_SEND) != 0){
+        if ((probe & IKCP_ASK_SEND) != 0) {
             fragment.cmd = IKCP_CMD_WASK;
-            byteBuf = makeSpace(byteBuf,IKCP_OVERHEAD);
-            encodeFragment(byteBuf,fragment);
+            byteBuf = makeSpace(byteBuf, IKCP_OVERHEAD);
+            encodeFragment(byteBuf, fragment);
         }
 
-        if ((probe & IKCP_ASK_TELL) != 0){
+        if ((probe & IKCP_ASK_TELL) != 0) {
             fragment.cmd = IKCP_CMD_WINS;
-            byteBuf = makeSpace(byteBuf,IKCP_OVERHEAD);
-            encodeFragment(byteBuf,fragment);
+            byteBuf = makeSpace(byteBuf, IKCP_OVERHEAD);
+            encodeFragment(byteBuf, fragment);
         }
 
         probe = 0;
         //计算窗口大小
-        int cwnd0 = Math.min(snd_wnd,rmt_wnd);
-        if (!nocwnd){
-            cwnd0 = Math.min(this.cwnd,cwnd0);
+        int cwnd0 = Math.min(snd_wnd, rmt_wnd);
+        if (!nocwnd) {
+            cwnd0 = Math.min(this.cwnd, cwnd0);
         }
 
         int newFrgsCount = 0;
-        while(itimediff(snd_nxt,snd_una + cwnd0) < 0){
+        while (itimediff(snd_nxt, snd_una + cwnd0) < 0) {
             Fragment newFrg = sndQueue.poll();
             if (newFrg == null)
                 break;
@@ -285,32 +289,32 @@ public class Pcp {
 //        int lostFrgs = 0,fastRetranssFrgs = 0,earlyRetransFrgs = 0;
         long minrto = interval;
 
-        for (Iterator<Fragment> itr = sndBufItr.rewind();itr.hasNext();){
-            Fragment frg= itr.next();
-            boolean needsend =false;
-            if (frg.xmit == 0){
+        for (Iterator<Fragment> itr = sndBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            boolean needsend = false;
+            if (frg.xmit == 0) {
                 needsend = true;
                 frg.rto = rx_rto;
                 frg.resendts = current + frg.rto;
-            }else if (frg.fastack >= resent){
+            } else if (frg.fastack >= resent) {
                 needsend = true;
                 frg.fastack = 0;
                 frg.rto = rx_rto;
                 frg.resendts = current + frg.rto;
-                change ++;
+                change++;
 //                fastRetranssFrgs ++;
-            }else if (frg.fastack > 0 && newFrgsCount == 0){
+            } else if (frg.fastack > 0 && newFrgsCount == 0) {
                 needsend = true;
                 frg.fastack = 0;
                 frg.rto = rx_rto;
                 frg.resendts = current + frg.rto;
                 change++;
 //                earlyRetransFrgs ++;
-            }else if (itimediff(current,frg.resendts) >= 0){
+            } else if (itimediff(current, frg.resendts) >= 0) {
                 needsend = true;
-                if (!nodelay){
+                if (!nodelay) {
                     frg.rto += rx_rto;
-                }else{
+                } else {
                     frg.rto += rx_rto / 2;
                 }
                 frg.fastack = 0;
@@ -319,28 +323,30 @@ public class Pcp {
 //                lostFrgs ++;
             }
 
-            if (needsend){
-                frg.xmit ++;
+            if (needsend) {
+                frg.xmit++;
                 frg.ts = long2Uint(current);
                 frg.wnd = fragment.wnd;
                 frg.una = rcv_nxt;
                 frg.setAckMaskSize(this.ackMaskSize);
                 frg.ackMask = ackMask;
 
-                ByteBuf frgData = fragment.data;
+                ByteBuf frgData = frg.data;
                 int frgLen = frgData.readableBytes();
+//                int need = IKCP_OVERHEAD + frgLen;
                 int need = IKCP_OVERHEAD + frgLen;
-                byteBuf = makeSpace(byteBuf,need);
-                encodeFragment(byteBuf,frg);
-                if (frgLen > 0){
-                    byteBuf.writeBytes(frgData,frgData.readerIndex(),frgLen);
+                byteBuf = makeSpace(byteBuf, need);
+                encodeFragment(byteBuf, frg);
+                //test
+                if (frgLen > 0) {
+                    byteBuf.writeBytes(frgData, frgData.readerIndex(), frgLen);
                 }
 
-                if (frg.xmit >= deadLink){
+                if (frg.xmit >= deadLink) {
                     //连接断开
                 }
-                long rto = itimediff(frg.resendts,current);
-                if (rto > 0 && rto < minrto){
+                long rto = itimediff(frg.resendts, current);
+                if (rto > 0 && rto < minrto) {
                     minrto = rto;
                 }
             }
@@ -349,25 +355,25 @@ public class Pcp {
         flushBuffer(byteBuf);
         fragment.recycler(true);
 
-        if (!nocwnd){
-            if (change > 0){
+        if (!nocwnd) {
+            if (change > 0) {
                 int inflight = (int) (snd_nxt - snd_una);
-                ts_ssthresh  = inflight / 2;
-                if (ts_ssthresh < IKCP_THRESH_MIN){
+                ts_ssthresh = inflight / 2;
+                if (ts_ssthresh < IKCP_THRESH_MIN) {
                     ts_ssthresh = IKCP_THRESH_MIN;
                 }
                 cwnd = ts_ssthresh + resent;
                 incr = cwnd * mss;
             }
-            if (lost){
+            if (lost) {
                 ts_ssthresh = cwnd0 / 2;
-                if (ts_ssthresh < IKCP_THRESH_MIN){
+                if (ts_ssthresh < IKCP_THRESH_MIN) {
                     ts_ssthresh = IKCP_THRESH_MIN;
                 }
                 cwnd = 1;
                 incr = mss;
             }
-            if (cwnd < 1){
+            if (cwnd < 1) {
                 cwnd = 1;
                 incr = mss;
             }
@@ -376,9 +382,377 @@ public class Pcp {
 
     }
 
+    public int input(ByteBuf data, boolean regular, long current) {
+        long oldSnduna = snd_una;
+        if (data == null || data.readableBytes() < IKCP_OVERHEAD) {
+            return -1;
+        }
+        long latest = 0;
+        boolean flag = false;
+        int inSegs = 0;
+        long uintCurrent = long2Uint(current - startTicks);
+
+        while (true) {
+            int conv, len, wnd;
+            long ts, sn, una, ackMask;
+            byte cmd,frgid;
+            Fragment frg;
+            if (data.readableBytes() < IKCP_OVERHEAD) {
+                break;
+            }
+            conv = data.readIntLE();
+            cmd = data.readByte();
+            frgid = data.readByte();
+            wnd = data.readUnsignedShortLE();
+            ts = data.readUnsignedIntLE();
+            sn = data.readUnsignedIntLE();
+            una = data.readUnsignedIntLE();
+            len = data.readIntLE();
+            switch (ackMaskSize) {
+                case 8:
+                    ackMask = data.readUnsignedByte();
+                    break;
+                case 16:
+                    ackMask = data.readUnsignedShortLE();
+                    break;
+                case 32:
+                    ackMask = data.readUnsignedIntLE();
+                    break;
+                case 64:
+                    ackMask = data.readLongLE();
+                    break;
+                default:
+                    ackMask = 0;
+                    break;
+            }
+            if (data.readableBytes() < len) {
+                return -2;
+            }
+            if (cmd != IKCP_CMD_PUSH && cmd != IKCP_CMD_ACK && cmd != IKCP_CMD_WASK && cmd != IKCP_CMD_WINS) {
+                return -3;
+            }
+            if (regular) {
+                this.rmt_wnd = wnd;
+            }
+            parseUna(una);
+            shrinkBuf();
+
+            boolean readed = false;
+            switch (cmd) {
+                case IKCP_CMD_ACK: {
+                    parseAck(sn);
+                    parseFastack(sn, ts);
+                    flag = true;
+                    latest = ts;
+                    int rtt = itimediff(uintCurrent, ts);
+                    break;
+                }
+                case IKCP_CMD_PUSH: {
+                    boolean repeat = true;
+                    if (itimediff(sn, rcv_nxt + rcv_wnd) < 0) {
+                        ackPush(sn, ts);
+                        if (itimediff(sn, rcv_nxt) >= 0) {
+                            if (len > 0) {
+                                frg = Fragment.createFragment(data.readRetainedSlice(len));
+                                readed = true;
+                            } else {
+                                frg = Fragment.createFragment(byteBufAllocator, 0);
+                            }
+                            frg.conv = conv;
+                            frg.cmd = cmd;
+                            frg.frgid = frgid;
+                            frg.wnd = wnd;
+                            frg.ts = ts;
+                            frg.sn = sn;
+                            frg.una = una;
+                            repeat = parseData(frg);
+                        }
+                    }
+                    break;
+                }
+                case IKCP_CMD_WASK: {
+                    probe |= IKCP_ASK_TELL;
+                    break;
+                }
+                case IKCP_CMD_WINS: {
+                    break;
+                }
+                default:
+                    return -3;
+            }
+            parseAckMask(una, ackMask);
+            if (!readed) {
+                data.skipBytes(len);
+            }
+        }
+        if (flag && regular) {
+            int rtt = itimediff(uintCurrent, latest);
+            if (rtt >= 0) {
+                updateAck(rtt);
+            }
+        }
+        if (!nocwnd) {
+            if (itimediff(snd_una, oldSnduna) > 0) {
+                if (cwnd < rmt_wnd) {
+                    int mss = this.mss;
+                    if (cwnd < ts_ssthresh) {
+                        cwnd++;
+                        incr += mss;
+                    } else {
+                        if (incr < mss) {
+                            incr = mss;
+                        }
+                        incr += (mss * mss) / incr + (mss / 16);
+                        if ((cwnd + 1) * mss <= incr) {
+                            cwnd++;
+                        }
+                    }
+                    if (cwnd > rmt_wnd) {
+                        cwnd = rmt_wnd;
+                        incr = rmt_wnd * mss;
+                    }
+                }
+            }
+        }
+
+        if (ackcount > 0) {
+            flush(true, current);
+        }
+
+        return 0;
+    }
+
+    public boolean canRecv() {
+        if (rcvQueue.isEmpty())
+            return false;
+        //todo 加上可以接收的判断条件
+        Fragment frg = rcvQueue.peek();
+        if (frg.frgid == 0)
+            return true;
+        if (rcvQueue.size() < frg.frgid + 1) {
+            return false;
+        }
+        return true;
+    }
+
+
+    public ByteBuf mergeRecv() {
+        if (rcvQueue.isEmpty())
+            return null;
+        int peekSize = peekSize();
+        if (peekSize < 0)
+            return null;
+        boolean recover = false;
+        if (rcvQueue.size() >= rcv_wnd) {
+            recover = true;
+        }
+        ByteBuf byteBuf = null;
+        int len = 0;
+        for (Iterator<Fragment> itr = rcvQueueItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            len += frg.data.readableBytes();
+            int frgid = frg.frgid;
+            itr.remove();
+            if (byteBuf == null) {
+                if (frgid == 0) {
+                    byteBuf = frg.data;
+//                    frg.recycler(true);
+                    break;
+                }
+                byteBuf = byteBufAllocator.ioBuffer(len);
+            }
+            byteBuf.writeBytes(frg.data);
+            frg.recycler(true);
+            if (frgid == 0)
+                break;
+        }
+        assert len == peekSize;
+        moveRcvData();
+        if (rcvQueue.size() < rcv_wnd && recover) {
+            probe |= IKCP_ASK_TELL;
+        }
+        return byteBuf;
+    }
+
+    public int peekSize() {
+        if (rcvQueue.isEmpty())
+            return -1;
+        Fragment frg = rcvQueue.peek();
+        //第一个包是一条应用层消息的最后一个分包.
+        if (frg.frgid == 0) {
+            return frg.data.readableBytes();
+        }
+        if (rcvQueue.size() < frg.frgid + 1) {
+            return -1;
+        }
+        int len = 0;
+        for (Iterator<Fragment> itr = rcvQueueItr.rewind(); itr.hasNext(); ) {
+            Fragment f = itr.next();
+            len += f.data.readableBytes();
+            if (f.frgid == 0) {
+                break;
+            }
+        }
+        return len;
+    }
+
+    private void parseAck(long sn) {
+        if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0)
+            return;
+        for (Iterator<Fragment> itr = sndBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            if (sn == frg.sn) {
+                itr.remove();
+                frg.recycler(true);
+                break;
+            }
+            if (itimediff(sn, frg.sn) < 0)
+                break;
+        }
+    }
+
+    private void parseFastack(long sn, long ts) {
+        if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
+            return;
+        }
+        for (Iterator<Fragment> itr = sndBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            if (itimediff(sn, frg.sn) < 0)
+                break;
+            else if (sn != frg.sn && itimediff(frg.ts, ts) <= 0) {
+                frg.fastack++;
+            }
+        }
+    }
+
+    private void ackPush(long sn, long ts) {
+        int newSize = 2 * (ackcount + 1);
+        if (newSize > acklist.length) {
+            int newCapacity = acklist.length << 1;
+            if (newCapacity < 0)
+                throw new OutOfMemoryError();
+            long[] newArray = new long[newCapacity];
+            System.arraycopy(acklist, 0, newArray, 0, acklist.length);
+            this.acklist = newArray;
+        }
+        acklist[2 * ackcount] = sn;
+        acklist[2 * ackcount + 1] = ts;
+        ackcount++;
+    }
+
+    private boolean parseData(Fragment fragment) {
+        long sn = fragment.sn;
+        if (itimediff(sn, rcv_nxt + rcv_wnd) >= 0 || itimediff(sn, rcv_nxt) < 0) {
+            fragment.recycler(true);
+            return true;
+        }
+        boolean repeat = false, findPos = false;
+        ListIterator<Fragment> listItr = null;
+        if (rcvBuf.size() > 0) {
+            listItr = rcvBufItr.rewind(rcvBuf.size());
+            while (listItr.hasPrevious()) {
+                Fragment frg = listItr.previous();
+                if (frg.sn == sn) {
+                    repeat = true;
+                    break;
+                }
+                if (itimediff(sn, frg.sn) > 0) {
+                    findPos = true;
+                    break;
+                }
+            }
+        }
+        if (repeat) {
+            fragment.recycler(true);
+        } else if (listItr == null) {
+            rcvBuf.add(fragment);
+        } else {
+            if (findPos) {
+                listItr.next();
+            }
+            listItr.add(fragment);
+        }
+        moveRcvData();
+        return repeat;
+    }
+
+    private void moveRcvData() {
+        for (Iterator<Fragment> itr = rcvBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            if (frg.sn == rcv_nxt && rcvQueue.size() < rcv_wnd) {
+                itr.remove();
+                rcvQueue.add(frg);
+                rcv_nxt++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void parseAckMask(long una, long ackMask) {
+        if (ackMask == 0)
+            return;
+        for (Iterator<Fragment> itr = sndBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            long index = frg.sn - una - 1;
+            if (index < 0)
+                continue;
+            if (index >= ackMaskSize)
+                break;
+            long mask = ackMask & 1 << index;
+            if (mask != 0) {
+                itr.remove();
+                frg.recycler(true);
+            }
+        }
+    }
+
+    private void updateAck(int rtt) {
+        if (rx_srtt == 0) {
+            rx_srtt = rtt;
+            rx_rttval = rtt >> 2;
+        } else {
+            int delta = rtt - rx_srtt;
+            rx_srtt += delta >> 3;
+            delta = Math.abs(delta);
+            if (rtt < rx_srtt - rx_rttval) {
+                rx_rttval += (delta - rx_rttval) >> 5;
+            } else {
+                rx_rttval += (delta - rx_rttval) >> 4;
+            }
+        }
+        int rto = rx_srtt + Math.max(interval, rx_rttval << 2);
+        rx_rto = ibound(rx_minrto, rto, IKCP_RTO_MAX);
+    }
+
+    private static int ibound(int lower, int middle, int upper) {
+        return Math.min(Math.max(lower, middle), upper);
+    }
+
+    private void parseUna(long una) {
+        for (Iterator<Fragment> itr = sndBufItr.rewind(); itr.hasNext(); ) {
+            Fragment frg = itr.next();
+            if (itimediff(una, frg.sn) > 0) {     //只要una的值比frg的值大,就从sndBuf中移除.
+                itr.remove();
+                frg.recycler(true);
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void shrinkBuf() {
+        if (sndBuf.size() > 0) {
+            Fragment frg = sndBuf.peek();
+            snd_una = frg.sn;               //未确认发送下标是第一个frg的sn
+        } else {
+            snd_una = snd_nxt;
+        }
+    }
+
 
     private int wndUnused() {
-        int tmp = rcvQueue.size() - rcv_wnd;
+        int tmp = rcv_wnd - rcvQueue.size();
         return tmp < 0 ? 0 : tmp;
     }
 
@@ -388,10 +762,8 @@ public class Pcp {
 
     private ByteBuf makeSpace(ByteBuf buf, int space) {
         if (buf.readableBytes() + space > mtu) {
-            //发送??为什么发送
-//            output(buf,this);
+            output(buf,this);
             buf = createFlushByteBuf();
-//            buf.writerIndex()
         }
         return buf;
     }
@@ -400,7 +772,7 @@ public class Pcp {
         int offset = buf.writerIndex();
         buf.writeIntLE(fragment.conv);
         buf.writeByte(fragment.cmd);
-//        buf.writeByte(fragment.frgid);
+        buf.writeByte(fragment.frgid);
         buf.writeShortLE(fragment.wnd);
         buf.writeIntLE((int) fragment.ts);
         buf.writeIntLE((int) fragment.sn);
@@ -423,18 +795,17 @@ public class Pcp {
     }
 
     private void flushBuffer(ByteBuf byteBuf) {
-        //发送出去
-        if (byteBuf.readableBytes() > 0){
-            output(byteBuf,this);
+        if (byteBuf.readableBytes() > 0) {
+            output(byteBuf, this);
             return;
         }
         byteBuf.release();
     }
 
-    private static void output(ByteBuf data,Pcp pcp){
+    private static void output(ByteBuf data, Pcp pcp) {
         if (data.readableBytes() == 0)
             return;
-        pcp.pcpOutput.out(data,pcp);
+        pcp.pcpOutput.out(data, pcp);
     }
 
     private static int itimediff(long later, long earlier) {
@@ -452,15 +823,15 @@ public class Pcp {
 
     public void setMtu(int mtu) {
         this.mtu = mtu;
-        this.mss = mtu-IKCP_HEAD;
+        this.mss = mtu - IKCP_OVERHEAD;
     }
 
-    public int getMss(){
+    public int getMss() {
         return this.mss;
     }
 
 
-    private static long long2Uint(long n){
+    private static long long2Uint(long n) {
         return n & 0x00000000FFFFFFFFL;
     }
 
@@ -470,5 +841,21 @@ public class Pcp {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public boolean isFastFlush() {
+        return fastFlush;
+    }
+
+    public boolean checkFlush() {
+        if (ackcount > 0)
+            return true;
+        if (probe != 0)
+            return true;
+        if (sndBuf.size() > 0)
+            return true;
+        if (sndQueue.size() > 0)
+            return true;
+        return false;
     }
 }

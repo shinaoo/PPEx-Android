@@ -1,7 +1,10 @@
 package ppex.proto.pcp;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.util.Recycler;
 import ppex.utils.tpool.ITask;
+
+import java.util.Queue;
 
 public class RecvTask implements ITask {
 
@@ -28,6 +31,37 @@ public class RecvTask implements ITask {
 
     @Override
     public void execute() {
+        try {
+            boolean hasRcvMessage = false;
+            long current = System.currentTimeMillis();
+            Queue<ByteBuf> rcvList = pcpPack.getRcvList();
+            for(;;){
+                ByteBuf byteBuf = rcvList.poll();
+                if (byteBuf == null)
+                    break;
+                hasRcvMessage = true;
+                pcpPack.input(byteBuf,current);
+                byteBuf.release();
+            }
+            if (!hasRcvMessage)
+                return;
+            while(pcpPack.canRecv()){
+                ByteBuf rcvBuf = pcpPack.mergeReceive();
+//                pcpPack.getPcpListener().onResponse();
+            }
+            if (!pcpPack.getSndList().isEmpty() && pcpPack.canSend(false)){
+                pcpPack.notifyWriteEvent();
+            }
 
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        } finally {
+            release();
+        }
+    }
+
+    private void release(){
+        pcpPack = null;
+        recyclerHandler.recycle(this);
     }
 }

@@ -1,11 +1,13 @@
 package ppex.proto.msg.entity;
 
 import io.netty.channel.Channel;
+import org.apache.log4j.Logger;
 
 import java.net.InetSocketAddress;
 
 public class Connection {
 
+    private static Logger LOGGER = Logger.getLogger(Connection.class);
 
     public String macAddress;                              //使用mac地址来识别每个Connection
     public String peerName;

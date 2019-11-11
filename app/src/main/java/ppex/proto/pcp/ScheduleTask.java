@@ -29,6 +29,7 @@ public class ScheduleTask implements ITask, Runnable, TimerTask {
 
     @Override
     public void execute() {
+//        LOGGER.info("ScheduleTask execute");
         try {
             //暂时没有判断是否存活.
             long now = System.currentTimeMillis();
