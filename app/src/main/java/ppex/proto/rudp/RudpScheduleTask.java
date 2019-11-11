@@ -50,7 +50,7 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
 //                pcpPack.notifyWriteEvent();
 //            }
             long next = rudpPack.flush(now);
-            DisruptorExectorPool.scheduleHashedWheel(this,now+next);
+            DisruptorExectorPool.scheduleHashedWheel(this,next);
             if (!rudpPack.getQueue_snd().isEmpty() && rudpPack.canSend(false)){
                 rudpPack.notifySendEvent();
             }
