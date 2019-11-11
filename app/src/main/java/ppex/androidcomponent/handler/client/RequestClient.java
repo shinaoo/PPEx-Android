@@ -15,10 +15,12 @@ import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.androidcomponent.handler.CallBack;
 import ppex.androidcomponent.utils.RequestUtil;
 import ppex.client.entity.Client;
-import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.entity.Connection;
+import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.entity.txt.Request;
 import ppex.proto.msg.type.TxtTypeMsg;
+import ppex.proto.rudp.IAddrManager;
+import ppex.proto.rudp.RudpPack;
 import ppex.utils.MessageUtil;
 
 public class RequestClient {
@@ -29,6 +31,8 @@ public class RequestClient {
     private Channel channel;
     private Connection targetConnection;
     private int connectType;
+    private RudpPack rudpPack;
+    private IAddrManager addrManager;
 
     File sdFile = null;
 
@@ -53,6 +57,14 @@ public class RequestClient {
         this.connectType = connectType;
     }
 
+    public void setRudpPack(RudpPack rudpPack) {
+        this.rudpPack = rudpPack;
+    }
+
+    public void setAddrManager(IAddrManager addrManager) {
+        this.addrManager = addrManager;
+    }
+
     private Queue<AndroidRequest> requests = new LinkedBlockingQueue<>(10);
 
     public void sendRequest(String request){
@@ -70,9 +82,13 @@ public class RequestClient {
         txtTypeMsg.setContent(JSON.toJSONString(request1));
         Log.e(TAG,"txtTYpemsg:" + txtTypeMsg.getContent());
         if (connectType == Connect.TYPE.FORWARD.ordinal()){
-            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
+//            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
+            RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
+            rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
         }else{
-            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg,targetConnection.getAddress()));
+//            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg,targetConnection.getAddress()));
+            RudpPack rudpPack = addrManager.get(targetConnection.getAddress());
+            rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
         }
     }
 

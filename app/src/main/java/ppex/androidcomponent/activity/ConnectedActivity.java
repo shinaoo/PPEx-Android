@@ -2,6 +2,7 @@ package ppex.androidcomponent.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +15,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +28,7 @@ import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.R;
 import ppex.client.entity.Client;
+import ppex.client.socket.ClientAddrManager;
 import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.rudp.RudpPack;
@@ -42,6 +45,8 @@ public class ConnectedActivity extends Activity {
     private EditText et_content;
 
     private int connectType;
+    private File sdFile;
+    private File targetFile;
 
     private FilesAdapter filesAdapter;
     private List<Files> files;
@@ -68,6 +73,8 @@ public class ConnectedActivity extends Activity {
         connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
         Log.e(TAG,"connectype is :" + connectType);
         RequestClient.getDefault();
+        sdFile = Environment.getExternalStorageDirectory();
+        targetFile = new File(sdFile.getAbsolutePath(),"test.pdf");
     }
 
     private void findIds(){
@@ -115,7 +122,8 @@ public class ConnectedActivity extends Activity {
     }
 
     private void setRequestHandler(){
-        RequestClient.getDefault().setChannel(Client.getInstance().ch);
+//        RequestClient.getDefault().setChannel(Client.getInstance().ch);
+        RequestClient.getDefault().setAddrManager(ClientAddrManager.getInstance());
         RequestClient.getDefault().setTargetConnection(Client.getInstance().connectedMaps.get(0).getConnections().get(1));
         RequestClient.getDefault().setConnectType(connectType);
     }
