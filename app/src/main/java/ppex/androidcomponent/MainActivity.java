@@ -47,6 +47,7 @@ import ppex.proto.msg.entity.Connection;
 import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.Output;
 import ppex.proto.rudp.RudpPack;
+import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
 import ppex.utils.tpool.DisruptorExectorPool;
@@ -167,7 +168,8 @@ public class MainActivity extends AppCompatActivity {
                 addrManager.New(Client.getInstance().SERVER2P1,rudpPack1);
             }
             Client.getInstance().addrManager = addrManager;
-
+            RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
+            DisruptorExectorPool.scheduleHashedWheel(scheduleTask, rudpPack.getInterval());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
