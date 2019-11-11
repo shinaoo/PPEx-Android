@@ -49,7 +49,6 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
 //            ctx.writeAndFlush(MessageUtil.txtMsg2packet(tmsg,fromaddress));
             if (response != null) {
                 tmsg.setContent(JSON.toJSONString(response));
-                rudpPack = addrManager.get(tmsg.getTo());
                 rudpPack.write(MessageUtil.txtmsg2Msg(tmsg));
             }
         } else {
