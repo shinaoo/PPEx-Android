@@ -159,6 +159,9 @@ public class MainActivity extends AppCompatActivity {
                 rudpPack = new RudpPack(output, connection, executor, udpClientHandler, null);
                 addrManager.New(Client.getInstance().SERVER1, rudpPack);
             }
+
+            rudpPack.sendReset();
+
             IMessageExecutor executor1 = disruptorExectorPool.getAutoDisruptorProcessor();
             RudpPack rudpPack1 = addrManager.get(Client.getInstance().SERVER2P1);
             if (rudpPack1 == null){
@@ -167,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 rudpPack1 = new RudpPack(output,connection,executor1,udpClientHandler,null);
                 addrManager.New(Client.getInstance().SERVER2P1,rudpPack1);
             }
+            rudpPack1.sendReset();
             Client.getInstance().addrManager = addrManager;
             RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
             DisruptorExectorPool.scheduleHashedWheel(scheduleTask, rudpPack.getInterval());

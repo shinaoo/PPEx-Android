@@ -30,42 +30,45 @@ public class RcvTask implements ITask {
         return rcvTask;
     }
 
+    int count = 0;
+
     @Override
     public void execute() {
         try {
             long current = System.currentTimeMillis();
             Queue<ByteBuf> queue_rcv = rudpkg.getQueue_rcv();
             boolean hasByteBuf = false;
-            for (;;){
+            for (; ; ) {
                 ByteBuf byteBuf = queue_rcv.poll();
                 if (byteBuf == null)
                     break;
-                rudpkg.input(byteBuf,current);
+                rudpkg.input(byteBuf, current);
                 byteBuf.release();
                 hasByteBuf = true;
             }
             if (!hasByteBuf)
                 return;
-            while(rudpkg.canRcv()){
+//            rudpkg.printRcvShambleAndOrderNum();
+            while (rudpkg.canRcv()) {
                 Message msg = rudpkg.mergeRcv();
                 if (msg == null)
                     break;
                 if (rudpkg.getListener() == null)
                     break;
-                rudpkg.getListener().onResponse(rudpkg.getCtx(),rudpkg,msg);
+                rudpkg.getListener().onResponse(rudpkg.getCtx(), rudpkg, msg);
             }
-            if (!rudpkg.getQueue_snd().isEmpty() && rudpkg.canSend(false)){
+            if (!rudpkg.getQueue_snd().isEmpty() && rudpkg.canSend(false)) {
                 rudpkg.notifySendEvent();
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             release();
         }
     }
 
-    private void release(){
+    private void release() {
         rudpkg = null;
         recyclerHandler.recycle(this);
     }

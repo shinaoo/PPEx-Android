@@ -24,6 +24,7 @@ public class Rudp {
     public static final byte CMD_ACK = 82;
     public static final byte CMD_ASK_WIN = 83;
     public static final byte CMD_TELL_WIN = 84;
+    public static final byte CMD_RESET = 85;
 
     //need to send cmd_ask_win msg
     public static final int ASK_WIN = 1;
@@ -99,7 +100,7 @@ public class Rudp {
 
     public int send(ByteBuf buf, long msgid) {
         int len = buf.readableBytes();
-        if (len == 0){
+        if (len == 0) {
             buf.release();
             return -1;
         }
@@ -123,6 +124,28 @@ public class Rudp {
         return 0;
     }
 
+    public void sendReset() {
+        Frg frg = Frg.createFrg(byteBufAllocator, 0);
+        frg.cmd = CMD_RESET;
+        frg.tot = 0;
+        frg.msgid = -1;
+        queue_snd.add(frg);
+//        frg.sn = snd_nxt;
+//        snd_nxt++;
+//        frg.rto = rx_rto;
+//        frg.ts_resnd = System.currentTimeMillis() + frg.rto;
+//        frg.xmit ++;
+//        frg.ts = System.currentTimeMillis();
+//        frg.wnd = WND_SND;
+//        frg.una = rcv_nxt;
+//        ByteBuf flushbuf = createEmptyByteBuf(HEAD_LEN);
+//        encodeFlushBuf(flushbuf, frg);
+//        if (frg.data != null && frg.data.readableBytes() > 0) {
+//            flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
+//        }
+//        output(flushbuf);
+    }
+
     public int send(Message msg) {
 //        LOGGER.info("Rudp send msg id:" + msg.getMsgid());
         ByteBuf buf = MessageUtil.msg2ByteBuf(msg);
@@ -136,7 +159,9 @@ public class Rudp {
             Frg frg = queue_snd.poll();
             if (frg == null)
                 break;
-            frg.cmd = CMD_PUSH;
+            if (frg.cmd != CMD_RESET) {
+                frg.cmd = CMD_PUSH;
+            }
             frg.sn = snd_nxt;
             queue_sndack.add(frg);
             snd_nxt++;
@@ -236,10 +261,10 @@ public class Rudp {
             if (data.readableBytes() < len) {
                 return -2;
             }
-            if (cmd != CMD_ACK && cmd != CMD_PUSH && cmd != CMD_ASK_WIN && cmd != CMD_TELL_WIN) {
+            if (cmd != CMD_ACK && cmd != CMD_PUSH && cmd != CMD_ASK_WIN && cmd != CMD_TELL_WIN && cmd != CMD_RESET) {
                 return -3;
             }
-            this.wnd_rmt = wnd;
+//            this.wnd_rmt = wnd;
             parseUna(una);
             shrinkBuf();
             switch (cmd) {
@@ -271,6 +296,12 @@ public class Rudp {
                 case CMD_ASK_WIN:
                     break;
                 case CMD_TELL_WIN:
+                    break;
+                case CMD_RESET:
+                    if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
+                        reset();
+                        flushAck(sn, ts, msgid);
+                    }
                     break;
             }
         }
@@ -362,7 +393,6 @@ public class Rudp {
             }
         }
         if (repeat) {
-            //todo 消息重复,目前没有处理
             frg.recycler(true);
         } else if (itrList == null) {
             queue_rcv_shambles.add(frg);
@@ -395,6 +425,8 @@ public class Rudp {
         if (len < 0)
             return null;
         ByteBuf buf = null;
+        long msgid = -1;
+        msgid = itr_queue_rcv_order.rewind().next().msgid;
         for (Iterator<Frg> itr = itr_queue_rcv_order.rewind(); itr.hasNext(); ) {
             Frg frg = itr.next();
             itr.remove();
@@ -456,17 +488,38 @@ public class Rudp {
         return true;
     }
 
-    public void release(){
+    public void reset() {
+        //todo 解决服务器没断开,而客户端已经重开然后重连的情况.增加CMD_RESET
+        snd_nxt = 0;
+        snd_una = snd_nxt;
+        rcv_nxt=0;
+        rcv_nxt++;
+    }
+
+    public void release() {
         queue_rcv_order.forEach(frg -> frg.recycler(true));
-        queue_rcv_shambles.forEach( frg -> frg.recycler(true));
+        queue_rcv_shambles.forEach(frg -> frg.recycler(true));
         queue_snd.forEach(frg -> frg.recycler(true));
         queue_sndack.forEach(frg -> frg.recycler(true));
     }
 
-    public int getWndSnd(){
+    public LinkedList<Frg> getQueue_snd() {
+        return queue_snd;
+    }
+
+    public ReItrLinkedList<Frg> getQueue_rcv_order() {
+        return queue_rcv_order;
+    }
+
+    public ReItrLinkedList<Frg> getQueue_rcv_shambles() {
+        return queue_rcv_shambles;
+    }
+
+    public int getWndSnd() {
         return wnd_snd;
     }
-    public int waitSnd(){
+
+    public int waitSnd() {
         return this.queue_sndack.size() + this.queue_snd.size();
     }
 

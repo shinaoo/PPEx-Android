@@ -60,6 +60,10 @@ public class RudpPack {
         notifyRcvEvent();
     }
 
+    public void sendReset(){
+        rudp.sendReset();
+    }
+
     public void notifySendEvent() {
         SndTask task = SndTask.New(this);
         this.iMessageExecutor.execute(task);
@@ -145,5 +149,8 @@ public class RudpPack {
 
     public void setCtx(ChannelHandlerContext ctx) {
         this.ctx = ctx;
+    }
+
+    public void printRcvShambleAndOrderNum(){
     }
 }
