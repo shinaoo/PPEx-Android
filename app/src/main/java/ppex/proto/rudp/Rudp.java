@@ -1,5 +1,7 @@
 package ppex.proto.rudp;
 
+import android.util.Log;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -198,6 +200,7 @@ public class Rudp {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
                 output(flushbuf);
+                Log.e("MyTag","snd msgid:" + frg.msgid + " sn:" + frg.sn + " una:" + frg.una + " tot:"+frg.tot);
             }
         }
         return interval;

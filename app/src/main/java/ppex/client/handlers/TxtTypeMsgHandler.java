@@ -49,10 +49,8 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
 //            ctx.writeAndFlush(MessageUtil.txtMsg2packet(tmsg,fromaddress));
             tmsg.setContent(JSON.toJSONString(response));
             Log.e(TAG,"after request response:" + JSON.toJSONString(response));
-            if (response != null) {
                 rudpPack.write(MessageUtil.txtmsg2Msg(tmsg));
                 Log.e(TAG,"send response end to:" + rudpPack.getConnection().getAddress());
-            }
         } else {
             //得到的Response
             Response response = JSON.parseObject(tmsg.getContent(),Response.class);
