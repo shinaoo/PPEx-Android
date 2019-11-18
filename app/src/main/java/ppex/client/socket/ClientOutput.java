@@ -1,5 +1,7 @@
 package ppex.client.socket;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
@@ -33,8 +35,9 @@ public class ClientOutput implements PcpOutput, Output {
         ChannelFuture future = connection.getChannel().writeAndFlush(tmp);
         future.addListener(future1 -> {
             if (future1.isSuccess()){
-
+                Log.e("MyTag","ServerOutput success");
             }else{
+                Log.e("MyTag","exeception:" + future1.cause().getLocalizedMessage());
                 future1.cause().printStackTrace();
             }
         });
