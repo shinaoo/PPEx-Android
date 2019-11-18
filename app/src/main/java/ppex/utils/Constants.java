@@ -15,8 +15,8 @@ public class Constants {
 
     public static String SERVER_LOCAL_IP = "127.0.0.1";
     public static String SERVER_LOCAL = "localhost";
-    public static String SERVER_HOST1 = "113.110.224.9";
-    public static String SERVER_HOST2 = "183.15.176.90";
+    public static String SERVER_HOST1 = "113.110.226.33";
+    public static String SERVER_HOST2 = "116.24.65.203";
 //    public static String SERVER_HOST1 = "10.5.11.162";
 //    public static String SERVER_HOST2 = "10.5.11.55";
 
