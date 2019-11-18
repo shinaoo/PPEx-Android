@@ -191,7 +191,7 @@ public class Rudp {
                 if (frg.data.readableBytes() > 0) {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
-                Log.e("MyTag",this.getConnection().getAddress()+" flush sn:"+frg.sn + " xmit:" + frg.xmit);
+                Log.e("MyTag",""+this.getConnection().getAddress() +" flush sn:" + frg.sn);
                 output(flushbuf);
             }
         }
@@ -269,7 +269,7 @@ public class Rudp {
                     break;
                 case CMD_PUSH:
                     //首先判断是否超过窗口
-                    Log.e("MyTag","rcv:" + this.getConnection().getAddress() + " sn:" + sn + " rcvNxt:" + rcv_nxt + " wndrcv:" + wnd_rcv);
+                    Log.e("MyTag","recv:" + this.getConnection().getAddress() + " sn:" + sn + " rcvNxt:" + rcv_nxt + " wndrcv:" + wnd_rcv);
                     if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
                         flushAck(sn, ts, msgid);          //返回ack
                         Frg frg;
@@ -331,7 +331,7 @@ public class Rudp {
         for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
             Frg frg = itr.next();
             if (sn == frg.sn){
-                Log.e("MyTag","remoteClass:" +this.getConnection().getAddress()+" ack sn:" + sn);
+                Log.e("MyTag","remoteClass "+this.getConnection().getAddress() + " ack sn:" + sn);
                 itr.remove();
                 break;
             }
@@ -424,6 +424,7 @@ public class Rudp {
 //        msgid = itr_queue_rcv_order.rewind().next().msgid;
         for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
+            Log.e("MyTag","rcv msgid:" + msgid + " sn:" + frg.sn + " una:" + frg.una + " tot:" + frg.tot + " size of shambles:" + queue_rcv_shambles.size());
             itr.remove();
             if (buf == null) {
                 if (frg.tot == 0) {

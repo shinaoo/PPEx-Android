@@ -1,7 +1,8 @@
 package ppex.proto.rudp;
 
+import android.util.Log;
+
 import org.jctools.queues.MpscArrayQueue;
-import org.jctools.queues.SpscArrayQueue;
 
 import java.util.Queue;
 
@@ -31,7 +32,7 @@ public class RudpPack {
         this.connection = connection;
         this.iMessageExecutor = iMessageExecutor;
         this.queue_snd = new MpscArrayQueue<>(2 << 11);
-        this.queue_rcv = new SpscArrayQueue<>(2 << 11);
+        this.queue_rcv = new MpscArrayQueue<>(2 << 11);
         this.rudp = new Rudp(output, connection);
         this.listener = listener;
         this.ctx = ctx;
@@ -39,6 +40,7 @@ public class RudpPack {
 
     public boolean write(Message msg){
         if (!queue_snd.offer(msg)){
+            Log.e("MyTag","rudppkg queue snd is full");
             return false;
         }
         notifySendEvent();
@@ -152,5 +154,9 @@ public class RudpPack {
     }
 
     public void printRcvShambleAndOrderNum(){
+//        LOGGER.info("Rudppack shamble:" + rudp.getQueue_rcv_shambles().size() +  " order:" + rudp.getQueue_rcv_order().size());
+//        if (rudp.getQueue_rcv_shambles().size() > 0){
+//            rudp.getQueue_rcv_shambles().forEach(frg -> LOGGER.info("frg:" + frg.msgid + " sn:" + frg.sn + " tot:" + frg.tot));
+//        }
     }
 }
