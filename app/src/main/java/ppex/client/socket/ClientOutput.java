@@ -1,6 +1,7 @@
 package ppex.client.socket;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
 import ppex.proto.msg.entity.Connection;
 import ppex.proto.pcp.Pcp;
@@ -29,6 +30,14 @@ public class ClientOutput implements PcpOutput, Output {
     public void output(ByteBuf data, Rudp rudp) {
         Connection connection = rudp.getConnection();
         DatagramPacket tmp = new DatagramPacket(data,connection.getAddress());
-        connection.getChannel().writeAndFlush(tmp);
+        ChannelFuture future = connection.getChannel().writeAndFlush(tmp);
+        future.addListener(future1 -> {
+            if (future1.isSuccess()){
+
+            }else{
+                future1.cause().printStackTrace();
+            }
+        });
+
     }
 }
