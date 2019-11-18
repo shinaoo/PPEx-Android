@@ -4,7 +4,6 @@ import android.util.Log;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -12,8 +11,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.entity.Connection;
 import ppex.utils.MessageUtil;
-import ppex.utils.set.ReItrLinkedList;
-import ppex.utils.set.ReusableListIterator;
 
 public class Rudp {
 
@@ -72,16 +69,11 @@ public class Rudp {
     //等待发送的数据
     private LinkedList<Frg> queue_snd = new LinkedList<>();
     //发送后等待确认数据,与上面queue_snd对应下来
-    private ReItrLinkedList<Frg> queue_sndack = new ReItrLinkedList<>();
+    private LinkedList<Frg> queue_sndack = new LinkedList<>();
     //收到有序的消息队列
-    private ReItrLinkedList<Frg> queue_rcv_order = new ReItrLinkedList<>();
+    private LinkedList<Frg> queue_rcv_order = new LinkedList<>();
     //收到无序的消息队列
-    private ReItrLinkedList<Frg> queue_rcv_shambles = new ReItrLinkedList<>();
-
-    //发送队列以及接收队列的iterator
-    private ReusableListIterator<Frg> itr_queue_rcv_order = queue_rcv_order.listIterator();
-    private ReusableListIterator<Frg> itr_queue_rcv_shambles = queue_rcv_shambles.listIterator();
-    private ReusableListIterator<Frg> itr_queue_sndack = queue_sndack.listIterator();
+    private LinkedList<Frg> queue_rcv_shambles = new LinkedList<>();
 
     //开始的时间戳
     private long startTicks = System.currentTimeMillis();
@@ -200,7 +192,6 @@ public class Rudp {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
                 output(flushbuf);
-                Log.e("MyTag","snd msgid:" + frg.msgid + " sn:" + frg.sn + " una:" + frg.una + " tot:"+frg.tot);
             }
         }
         return interval;
@@ -312,11 +303,11 @@ public class Rudp {
     }
 
     private void parseUna(long una) {
-        for (Iterator<Frg> itr = itr_queue_sndack.rewind(); itr.hasNext(); ) {
+        for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
             Frg frg = itr.next();
-            if (itimediff(una, frg.sn) > 0) {
+            if (itimediff(una,frg.sn) > 0){
                 itr.remove();
-            } else {
+            }else{
                 break;
             }
         }
@@ -335,14 +326,13 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        for (Iterator<Frg> itr = itr_queue_sndack.rewind(); itr.hasNext(); ) {
-            Frg fr = itr.next();
-            if (sn == fr.sn) {
+        for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
+            Frg frg = itr.next();
+            if (sn == frg.sn){
+                Log.e("MyTag","ack sn:" + sn);
                 itr.remove();
                 break;
             }
-            if (itimediff(sn, fr.sn) < 0)
-                break;
         }
     }
 
@@ -350,12 +340,12 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        for (Iterator<Frg> itr = itr_queue_sndack.rewind(); itr.hasNext(); ) {
-            Frg frg = itr.next();
-            if (itimediff(sn, frg.sn) < 0) {
+        for (Iterator<Frg> iterator = queue_sndack.iterator();iterator.hasNext();){
+            Frg frg = iterator.next();
+            if (itimediff(sn,frg.sn) < 0){
                 break;
-            } else if (sn != frg.sn && itimediff(frg.ts, ts) <= 0) {
-                frg.fastack++;
+            }else if (sn != frg.sn && itimediff(frg.ts,ts)<=0){
+                frg.fastack ++;
             }
         }
     }
@@ -380,16 +370,17 @@ public class Rudp {
             return;
         }
         boolean repeat = false, findPos = false;
-        ListIterator<Frg> itrList = null;
+//        ListIterator<Frg> itrList = null;
+        Iterator<Frg> itr = null;
         if (queue_rcv_shambles.size() > 0) {
-            itrList = itr_queue_rcv_shambles.rewind(queue_rcv_shambles.size());
-            while (itrList.hasPrevious()) {
-                Frg frgTmp = itrList.previous();
-                if (frgTmp.sn == sn) {
+            itr = queue_rcv_shambles.iterator();
+            while(itr.hasNext()){
+                Frg frgTmp = itr.next();
+                if (frgTmp.sn == sn){
                     repeat = true;
                     break;
                 }
-                if (itimediff(sn, frgTmp.sn) > 0) {
+                if (itimediff(sn,frgTmp.sn) > 0){
                     findPos = true;
                     break;
                 }
@@ -397,23 +388,22 @@ public class Rudp {
         }
         if (repeat) {
             frg.recycler(true);
-        } else if (itrList == null) {
+        } else if (itr == null) {
             queue_rcv_shambles.add(frg);
         } else {
             if (findPos)
-                itrList.next();
-            itrList.add(frg);
+                queue_rcv_shambles.add(frg);
         }
     }
 
     private void arrangeRcvData() {
-        for (Iterator<Frg> itr = itr_queue_rcv_shambles.rewind(); itr.hasNext(); ) {
+        for(Iterator<Frg> itr = queue_rcv_shambles.iterator();itr.hasNext();){
             Frg frg = itr.next();
-            if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv) {
+            if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv){
                 itr.remove();
                 queue_rcv_order.add(frg);
                 rcv_nxt++;
-            } else {
+            }else{
                 break;
             }
         }
@@ -429,8 +419,8 @@ public class Rudp {
             return null;
         ByteBuf buf = null;
         long msgid = -1;
-        msgid = itr_queue_rcv_order.rewind().next().msgid;
-        for (Iterator<Frg> itr = itr_queue_rcv_order.rewind(); itr.hasNext(); ) {
+//        msgid = itr_queue_rcv_order.rewind().next().msgid;
+        for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
             itr.remove();
             if (buf == null) {
@@ -461,7 +451,7 @@ public class Rudp {
         if (queue_rcv_order.size() < frg.tot + 1)
             return -1;
         int len = 0;
-        for (Iterator<Frg> itr = itr_queue_rcv_order.rewind(); itr.hasNext(); ) {
+        for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
             Frg f = itr.next();
             len += f.data.readableBytes();
             if (f.tot == 0)
@@ -510,11 +500,11 @@ public class Rudp {
         return queue_snd;
     }
 
-    public ReItrLinkedList<Frg> getQueue_rcv_order() {
+    public LinkedList<Frg> getQueue_rcv_order() {
         return queue_rcv_order;
     }
 
-    public ReItrLinkedList<Frg> getQueue_rcv_shambles() {
+    public LinkedList<Frg> getQueue_rcv_shambles() {
         return queue_rcv_shambles;
     }
 
