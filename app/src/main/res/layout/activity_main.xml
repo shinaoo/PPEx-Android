@@ -109,6 +109,11 @@
             android:id="@+id/tv_main_showconnectinfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"></TextView>
+        <Button
+            android:id="@+id/btn_main_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="test"/>
     </LinearLayout>
 
     <LinearLayout

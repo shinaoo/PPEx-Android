@@ -30,7 +30,6 @@ public class FileHandler implements RequestHandle {
 
     @Override
     public Response handleRequest(Request request) {
-        Log.e(TAG,"file handler hanle " + request.getBody());
         AndroidRequest request1 = RequestUtil.request2AndroidRequest(request);
         if (!request1.getAction().startsWith("/file"))
             return null;
@@ -41,7 +40,6 @@ public class FileHandler implements RequestHandle {
     }
 
     private Response handleGetFiles(AndroidRequest request){
-        Log.e(TAG,"file handler handle:" + request.getAction());
         String path = request.getParams().get("path");
         if (path == null)
             return null;
@@ -50,12 +48,18 @@ public class FileHandler implements RequestHandle {
         if ("root".equals(path)){
             File[] sdfiles = sdFile.listFiles();
             List<Files> responsefile = new ArrayList<>();
-            Arrays.stream(sdfiles).forEach(file -> {
+//            Arrays.stream(sdfiles).forEach(file -> {
+//                Files files = new Files();
+//                files.setDirectory(file.isDirectory());
+//                files.setName(file.getName());
+//                responsefile.add(files);
+//            });
+            for (int i =0;i < 5;i ++){
                 Files files = new Files();
-                files.setDirectory(file.isDirectory());
-                files.setName(file.getName());
+                files.setDirectory(sdfiles[i].isDirectory());
+                files.setName(sdfiles[i].getName());
                 responsefile.add(files);
-            });
+            }
             response.setBody(JSON.toJSONString(responsefile));
             return response;
         }

@@ -46,14 +46,11 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
             tmsg.setReq(false);
             Request request = JSON.parseObject(tmsg.getContent(), Request.class);
             Response response = ActionHandler.getInstance().handleRequest(request);
-//            ctx.writeAndFlush(MessageUtil.txtMsg2packet(tmsg,fromaddress));
             tmsg.setContent(JSON.toJSONString(response));
-            Log.e(TAG,"after request response:" + JSON.toJSONString(response));
-                rudpPack.write(MessageUtil.txtmsg2Msg(tmsg));
-                Log.e(TAG,"send response end to:" + rudpPack.getConnection().getAddress());
+            rudpPack.write(MessageUtil.txtmsg2Msg(tmsg));
         } else {
             //得到的Response
-            Response response = JSON.parseObject(tmsg.getContent(),Response.class);
+            Response response = JSON.parseObject(tmsg.getContent(), Response.class);
             ResponseHandler.getInstance().handleResponse(response);
         }
     }
