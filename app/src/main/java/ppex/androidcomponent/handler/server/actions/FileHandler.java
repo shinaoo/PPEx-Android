@@ -1,19 +1,16 @@
 package ppex.androidcomponent.handler.server.actions;
 
 import android.os.Environment;
-import android.os.FileUtils;
-import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.androidcomponent.utils.RequestUtil;
+import ppex.proto.msg.entity.testpack.Files;
 import ppex.proto.msg.entity.txt.Request;
 import ppex.proto.msg.entity.txt.RequestHandle;
 import ppex.proto.msg.entity.txt.Response;

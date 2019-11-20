@@ -4,10 +4,7 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
-import org.greenrobot.eventbus.EventBus;
-
 import io.netty.channel.ChannelHandlerContext;
-import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.handler.client.ResponseHandler;
 import ppex.androidcomponent.handler.server.ActionHandler;
 import ppex.androidcomponent.handler.server.actions.FileHandler;
@@ -50,8 +47,10 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
             rudpPack.write(MessageUtil.txtmsg2Msg(tmsg));
         } else {
             //得到的Response
-            Response response = JSON.parseObject(tmsg.getContent(), Response.class);
-            ResponseHandler.getInstance().handleResponse(response);
+//            Response response = JSON.parseObject(tmsg.getContent(), Response.class);
+//            ResponseHandler.getInstance().handleResponse(response);
+//            List<Files> filesList = JSON.parseArray(tmsg.getContent(),Files.class);
+//            filesList.stream().forEach(files -> Log.e("MyTag","filename:" + files.getName()));
         }
     }
 

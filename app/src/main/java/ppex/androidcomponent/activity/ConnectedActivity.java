@@ -26,15 +26,11 @@ import java.util.Map;
 import androidx.annotation.Nullable;
 import ppex.androidcomponent.adapter.FilesAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
-import ppex.androidcomponent.entity.Files;
 import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.R;
 import ppex.client.entity.Client;
 import ppex.client.socket.ClientAddrManager;
-import ppex.proto.msg.entity.through.Connect;
-import ppex.proto.msg.type.TxtTypeMsg;
-import ppex.proto.rudp.RudpPack;
-import ppex.utils.MessageUtil;
+import ppex.proto.msg.entity.testpack.Files;
 
 public class ConnectedActivity extends Activity {
 

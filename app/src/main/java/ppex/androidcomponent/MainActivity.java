@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.alibaba.fastjson.JSON;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -21,7 +23,9 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +40,7 @@ import io.netty.util.internal.SocketUtils;
 import ppex.androidcomponent.activity.ConnectedActivity;
 import ppex.androidcomponent.adapter.ConnectionAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
+import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.R;
 import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
@@ -44,12 +49,15 @@ import ppex.client.socket.ClientAddrManager;
 import ppex.client.socket.ClientOutput;
 import ppex.client.socket.UdpClientHandler;
 import ppex.proto.msg.entity.Connection;
+import ppex.proto.msg.entity.through.Connect;
+import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.Output;
 import ppex.proto.rudp.RudpPack;
 import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
+import ppex.utils.MessageUtil;
 import ppex.utils.tpool.DisruptorExectorPool;
 import ppex.utils.tpool.IMessageExecutor;
 
@@ -57,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = MainActivity.class.getName();
 
-    private Button btn_getnattype, btn_getallpeers;
+    private Button btn_getnattype, btn_getallpeers,btn_test;
     private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac,tv_showrcvcontent;
     private ListView lv_showallpeers;
 
@@ -95,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         tv_showlocalmac = findViewById(R.id.tv_main_showlocalmac);
         lv_showallpeers = findViewById(R.id.lv_main_showallpeers);
         tv_showrcvcontent = findViewById(R.id.tv_main_showrcvcontent);
+        btn_test = findViewById(R.id.btn_main_test);
     }
 
     private void setEventListener() {
@@ -122,6 +131,17 @@ public class MainActivity extends AppCompatActivity {
             ThroughProcess.getInstance().connectPeer(Client.getInstance().ch, connections.get(position),addrManager);
             Client.getInstance().targetConnection = connections.get(position);
 //            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
+        });
+        btn_test.setOnClickListener(view->{
+            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+            txtTypeMsg.setReq(true);
+            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
+            txtTypeMsg.setTo(Client.getInstance().SERVER1);
+            txtTypeMsg.setContent("");
+            Log.e(TAG,"txtTYpemsg:" + txtTypeMsg.getContent());
+//            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
+                RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
         });
     }
 

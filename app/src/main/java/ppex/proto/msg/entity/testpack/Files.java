@@ -1,4 +1,4 @@
-package ppex.androidcomponent.entity;
+package ppex.proto.msg.entity.testpack;
 
 public class Files {
     private String name;

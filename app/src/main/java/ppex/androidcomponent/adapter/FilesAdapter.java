@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ppex.client.R;
-import ppex.androidcomponent.entity.Files;
+import ppex.proto.msg.entity.testpack.Files;
 
 public class FilesAdapter extends BaseAdapter {
 
