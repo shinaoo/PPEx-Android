@@ -26,6 +26,7 @@ public class FileHandler implements RequestHandle {
 
     public FileHandler() {
         sdFile = Environment.getExternalStorageDirectory();
+        sdFile = new File(sdFile,"/test");
     }
 
     @Override
@@ -54,7 +55,7 @@ public class FileHandler implements RequestHandle {
 //                files.setName(file.getName());
 //                responsefile.add(files);
 //            });
-            for (int i =0;i < 5;i ++){
+            for (int i =0;i < sdfiles.length;i ++){
                 Files files = new Files();
                 files.setDirectory(sdfiles[i].isDirectory());
                 files.setName(sdfiles[i].getName());

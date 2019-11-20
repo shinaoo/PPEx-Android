@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -98,19 +100,28 @@ public class ConnectedActivity extends Activity {
             params.put("path","root");
             RequestClient.getDefault().sendRequest("/file/getfiles",null,params);
         });
-        btn_send.setOnClickListener(v ->{
-            String contetn = et_content.getText().toString();
-            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
-            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
-            txtTypeMsg.setTo(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
-            txtTypeMsg.setReq(true);
-            txtTypeMsg.setContent(contetn);
-            if(connectType == Connect.TYPE.FORWARD.ordinal()){
-                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().SERVER1);
-                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
-            }else{
-                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
-                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+//        btn_send.setOnClickListener(v ->{
+////            String contetn = et_content.getText().toString();
+////            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+////            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
+////            txtTypeMsg.setTo(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
+////            txtTypeMsg.setReq(true);
+////            txtTypeMsg.setContent(contetn);
+////            if(connectType == Connect.TYPE.FORWARD.ordinal()){
+////                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().SERVER1);
+////                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+////            }else{
+////                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
+////                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+////            }
+////        });
+        lv_showfiles.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Map<String,String> params = new HashMap<>();
+                params.put("path",files.get(i).getName());
+                RequestClient.getDefault().sendRequest("/file/download",null,params);
+                return true;
             }
         });
     }

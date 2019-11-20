@@ -36,7 +36,7 @@ public class Rudp {
     public int HEAD_LEN = 45;
     //MTU
     public static final int MTU_DEFUALT = 1471;
-    public static final int INTERVAL = 100;
+    public static final int INTERVAL = 200;
     //接收和发送窗口长度
     public static final int WND_SND = 32;
     public static final int WND_RCV = 32;
