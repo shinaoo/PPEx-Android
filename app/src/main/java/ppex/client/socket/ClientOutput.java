@@ -13,14 +13,13 @@ import ppex.proto.rudp.Rudp;
 public class ClientOutput implements Output {
 
     @Override
-    public void output(ByteBuf data, Rudp rudp,long sn) {
+    public void output(ByteBuf data, Rudp rudp) {
         Connection connection = rudp.getConnection();
         DatagramPacket tmp = new DatagramPacket(data,connection.getAddress());
         Channel channel = connection.getChannel();
         if (!channel.isActive() || !channel.isOpen()){
-            Log.e("MyTag","channel is close:" + sn);
+            Log.e("MyTag","channel is close:" );
         }
-        Log.e("MyTag","Clientoutput writeandflush sn:" + sn);
         ChannelFuture future = channel.writeAndFlush(tmp);
         future.addListener(future1 -> {
             if (future1.isSuccess()){

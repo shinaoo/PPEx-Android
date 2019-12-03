@@ -1,7 +1,5 @@
 package ppex.proto.rudp;
 
-import android.util.Log;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -33,10 +31,10 @@ public class Rudp {
     //超过次数重传就认为连接断开
     public static final int DEAD_LINK = 10;
     //头部数据长度
-    public int HEAD_LEN = 45;
+    public static int HEAD_LEN = 45;
     //MTU
-    public static final int MTU_DEFUALT = 1471;
-    public static final int INTERVAL = 200;
+    public static final int MTU_DEFUALT = 1407;
+    public static final int INTERVAL = 100;
     //接收和发送窗口长度
     public static final int WND_SND = 32;
     public static final int WND_RCV = 32;
@@ -191,8 +189,7 @@ public class Rudp {
                 if (frg.data.readableBytes() > 0) {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
-                Log.e("MyTag",""+this.getConnection().getAddress() +" flush sn:" + frg.sn);
-                output(flushbuf,frg.sn);
+                output(flushbuf);
             }
         }
         return interval;
@@ -208,9 +205,9 @@ public class Rudp {
         return tmp < 0 ? 0 : tmp;
     }
 
-    private void output(ByteBuf buf,long sn) {
+    private void output(ByteBuf buf) {
         if (buf.readableBytes() > 0) {
-            output.output(buf, this,sn);
+            output.output(buf, this);
             return;
         }
         buf.release();
@@ -269,7 +266,6 @@ public class Rudp {
                     break;
                 case CMD_PUSH:
                     //首先判断是否超过窗口
-                    Log.e("MyTag","recv:" + this.getConnection().getAddress() + " sn:" + sn + " rcvNxt:" + rcv_nxt + " wndrcv:" + wnd_rcv);
                     if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
                         flushAck(sn, ts, msgid);          //返回ack
                         Frg frg;
@@ -331,7 +327,6 @@ public class Rudp {
         for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
             Frg frg = itr.next();
             if (sn == frg.sn){
-                Log.e("MyTag","remoteClass "+this.getConnection().getAddress() + " ack sn:" + sn);
                 itr.remove();
                 break;
             }
@@ -363,7 +358,7 @@ public class Rudp {
         frg.tot = 0;
         ByteBuf flushbuf = createEmptyByteBuf(HEAD_LEN);
         encodeFlushBuf(flushbuf, frg);
-        output(flushbuf,frg.sn);
+        output(flushbuf);
     }
 
     private void parseRcvData(Frg frg) {
@@ -426,7 +421,6 @@ public class Rudp {
 //        msgid = itr_queue_rcv_order.rewind().next().msgid;
         for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
-            Log.e("MyTag","rcv msgid:" + msgid + " sn:" + frg.sn + " una:" + frg.una + " tot:" + frg.tot + " size of shambles:" + queue_rcv_shambles.size());
             itr.remove();
             if (buf == null) {
                 if (frg.tot == 0) {
