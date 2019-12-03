@@ -59,7 +59,7 @@ public class UdpClient {
             bootstrap = new Bootstrap();
             int cpunum = Runtime.getRuntime().availableProcessors();
             disruptorExectorPool = new DisruptorExectorPool();
-            IntStream.range(0, cpunum).forEach(val -> disruptorExectorPool.createDisruptorProcessor("disruptro:" + val));
+            IntStream.range(0, 2).forEach(val -> disruptorExectorPool.createDisruptorProcessor("disruptro:" + val));
             boolean epoll = Epoll.isAvailable();
             if (epoll) {
                 bootstrap.option(EpollChannelOption.SO_REUSEPORT, true);
@@ -68,8 +68,8 @@ public class UdpClient {
             Class<? extends Channel> channelCls = epoll ? EpollDatagramChannel.class : NioDatagramChannel.class;
             bootstrap.channel(channelCls);
             bootstrap.group(group);
-            bootstrap.option(ChannelOption.SO_BROADCAST, true).option(ChannelOption.SO_REUSEADDR, true)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT));
+            bootstrap.option(ChannelOption.SO_BROADCAST, true).option(ChannelOption.SO_REUSEADDR, true);
+//                    .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT));
             udpClientHandler = new UdpClientHandler(null,disruptorExectorPool,addrManager);
             bootstrap.handler(new ChannelInitializer<Channel>() {
                 @Override
