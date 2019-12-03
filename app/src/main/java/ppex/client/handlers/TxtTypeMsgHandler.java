@@ -22,10 +22,10 @@ public class TxtTypeMsgHandler implements TypeMessageHandler {
     private static String TAG = TxtTypeMsgHandler.class.getName();
 
     public TxtTypeMsgHandler() {
-        ActionHandler.getInstance();
-        ActionHandler.getInstance().addPrefixActionHandle("/file", new FileHandler());
-
-        ResponseHandler.getInstance();
+//        ActionHandler.getInstance();
+//        ActionHandler.getInstance().addPrefixActionHandle("/file", new FileHandler());
+//
+//        ResponseHandler.getInstance();
     }
 
     @Override

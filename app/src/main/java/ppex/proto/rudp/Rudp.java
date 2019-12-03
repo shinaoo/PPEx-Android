@@ -104,15 +104,17 @@ public class Rudp {
         }
         if (count == 0)
             count = 1;
+        ByteBuf bufduplicate = buf.duplicate();
+        buf.release();
         for (int i = 0; i < count; i++) {
             int size = len > mss ? mss : len;
-            Frg frg = Frg.createFrg(buf.readSlice(size));
+            Frg frg = Frg.createFrg(bufduplicate.readSlice(size));
             frg.tot = (count - i - 1);
             frg.msgid = msgid;
             queue_snd.add(frg);
             len = buf.readableBytes();
         }
-        buf.release();
+        bufduplicate.release();
         return 0;
     }
 

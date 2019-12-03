@@ -1,5 +1,7 @@
 package ppex.client;
 
+import android.util.Log;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,12 +19,13 @@ public class DetectTest {
     public void setUp(){
         client = new UdpClient();
         client.startClient();
-
+        System.out.println("setup run");
     }
 
     @After
     public void finish(){
         client.stop();
+        System.out.println("finish run");
     }
 
     @Test

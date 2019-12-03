@@ -73,7 +73,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
             IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
             Connection connection = new Connection("", datagramPacket.sender(), "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), channel);
             Output output = new ClientOutput();
-            rudpPack = new RudpPack(output, connection, executor, null,channelHandlerContext);
+            rudpPack = new RudpPack(output, connection, executor, null, channelHandlerContext);
             addrManager.New(datagramPacket.sender(), rudpPack);
             rudpPack.read(datagramPacket.content());
 //            RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
@@ -115,7 +115,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
         //心跳包
         PingTypeMsg pingTypeMsg = new PingTypeMsg();
 //        ctx.writeAndFlush(MessageUtil.pingMsg2Packet(pingTypeMsg, Client.getInstance().SERVER1));
-        addrManager.getAll().forEach( rudpPack -> {
+        addrManager.getAll().forEach(rudpPack -> {
             rudpPack.write(MessageUtil.pingMsg2Msg(pingTypeMsg));
         });
     }
@@ -128,6 +128,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     @Override
     public void onResponse(ChannelHandlerContext ctx, RudpPack rudpPack, Message message) {
-        msgHandler.handleMessage(ctx,rudpPack,addrManager,message);
+        msgHandler.handleMessage(ctx, rudpPack, addrManager, message);
     }
 }

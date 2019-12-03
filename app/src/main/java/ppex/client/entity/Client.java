@@ -30,6 +30,8 @@ public class Client {
         return instance;
     }
 
+    private boolean debug = true;
+
     public EventLoopGroup group;
     public Bootstrap bootstrap;
     private List<Channel> channels = new ArrayList<>();
@@ -99,5 +101,13 @@ public class Client {
 
     public void setAddrManager(IAddrManager addrManager) {
         this.addrManager = addrManager;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public boolean isDebug() {
+        return debug;
     }
 }
