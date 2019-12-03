@@ -89,13 +89,11 @@ public class DetectProcess {
     }
 
     public void one_send2s1() throws Exception {
-//        this.channel.writeAndFlush(MessageUtil.probemsg2Packet(MessageUtil.makeClientStepOneProbeTypeMsg(Client.getInstance().local_address, Constants.PORT1), Client.getInstance().SERVER1));
         RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
         rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(Client.getInstance().local_address,Constants.PORT1)));
     }
 
     public void two_send2s2p1() throws Exception {
-//        this.channel.writeAndFlush(MessageUtil.probemsg2Packet(MessageUtil.makeClientStepTwoProbeTypeMsg(Client.getInstance().local_address, Constants.PORT1), Client.getInstance().SERVER2P1));
         RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER2P1);
         rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(Client.getInstance().local_address,Constants.PORT1)));
     }
