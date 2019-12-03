@@ -189,7 +189,7 @@ public class Rudp {
                 if (frg.data.readableBytes() > 0) {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
-                output(flushbuf);
+                output(flushbuf,frg.sn);
             }
         }
         return interval;
@@ -205,9 +205,9 @@ public class Rudp {
         return tmp < 0 ? 0 : tmp;
     }
 
-    private void output(ByteBuf buf) {
+    private void output(ByteBuf buf,long sn) {
         if (buf.readableBytes() > 0) {
-            output.output(buf, this);
+            output.output(buf, this,sn);
             return;
         }
         buf.release();
@@ -358,7 +358,7 @@ public class Rudp {
         frg.tot = 0;
         ByteBuf flushbuf = createEmptyByteBuf(HEAD_LEN);
         encodeFlushBuf(flushbuf, frg);
-        output(flushbuf);
+        output(flushbuf,frg.sn);
     }
 
     private void parseRcvData(Frg frg) {

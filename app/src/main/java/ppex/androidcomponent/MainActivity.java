@@ -27,9 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import androidx.appcompat.app.AppCompatActivity;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -53,6 +55,7 @@ import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.Output;
+import ppex.proto.rudp.Rudp;
 import ppex.proto.rudp.RudpPack;
 import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
@@ -151,16 +154,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initClient() {
-        disruptorExectorPool = new DisruptorExectorPool();
-        disruptorExectorPool.createDisruptorProcessor("1");
-        Identity.INDENTITY = Identity.Type.CLIENT.ordinal();
         getLocalInetSocketAddress();
+        disruptorExectorPool = new DisruptorExectorPool();
+        IntStream.range(0,2).forEach(val -> disruptorExectorPool.createDisruptorProcessor("thread:" +val));
 
-        Client.getInstance().group = new NioEventLoopGroup(1);
+        Identity.INDENTITY = Identity.Type.CLIENT.ordinal();
+
+        Client.getInstance().group = new NioEventLoopGroup(2);
         try {
             udpClientHandler = new UdpClientHandler(null, disruptorExectorPool, addrManager);
             Client.getInstance().bootstrap = new Bootstrap();
             Client.getInstance().bootstrap.group(Client.getInstance().group).channel(NioDatagramChannel.class)
+                    .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT))
                     .option(ChannelOption.SO_BROADCAST, true)
                     .handler(new ChannelInitializer<Channel>() {
                         @Override
