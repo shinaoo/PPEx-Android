@@ -1,82 +1,46 @@
 package ppex.androidcomponent;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSON;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 import androidx.appcompat.app.AppCompatActivity;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.AdaptiveRecvByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.internal.SocketUtils;
 import ppex.androidcomponent.activity.ConnectedActivity;
 import ppex.androidcomponent.adapter.ConnectionAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
-import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.R;
 import ppex.client.entity.Client;
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;
-import ppex.client.socket.ClientAddrManager;
-import ppex.client.socket.ClientOutput;
-import ppex.client.socket.UdpClientHandler;
+import ppex.client.socket.UdpClient;
 import ppex.proto.msg.entity.Connection;
-import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.type.TxtTypeMsg;
-import ppex.proto.rudp.IAddrManager;
-import ppex.proto.rudp.Output;
-import ppex.proto.rudp.Rudp;
 import ppex.proto.rudp.RudpPack;
-import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
-import ppex.utils.Identity;
 import ppex.utils.MessageUtil;
-import ppex.utils.tpool.DisruptorExectorPool;
-import ppex.utils.tpool.IMessageExecutor;
 
 public class MainActivity extends AppCompatActivity {
 
     private static String TAG = MainActivity.class.getName();
 
-    private Button btn_getnattype, btn_getallpeers,btn_test;
+    private Button btn_getnattype, btn_getallpeers,btn_test,btn_sendinfo;
     private TextView tv_shownattypeinfo, tv_showconectinfo, tv_showlocalpeername, tv_showlocalip, tv_showlocalmac,tv_showrcvcontent;
     private ListView lv_showallpeers;
 
     private ConnectionAdapter connectionAdapter;
     private List<Connection> connections = new ArrayList<>();
-    private IAddrManager addrManager = ClientAddrManager.getInstance();
-    private DisruptorExectorPool disruptorExectorPool;
-    private UdpClientHandler udpClientHandler;
+
+    private UdpClient udpClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
         setEventListener();
         initComponent();
         initClient();
+
+        tv_showlocalmac.setText(Client.getInstance().MAC_ADDRESS);
+        tv_showlocalip.setText(Client.getInstance().local_address);
+        tv_showlocalpeername.setText(Client.getInstance().peerName);
     }
 
     @Override
@@ -107,31 +75,30 @@ public class MainActivity extends AppCompatActivity {
         lv_showallpeers = findViewById(R.id.lv_main_showallpeers);
         tv_showrcvcontent = findViewById(R.id.tv_main_showrcvcontent);
         btn_test = findViewById(R.id.btn_main_test);
+        btn_sendinfo = findViewById(R.id.btn_main_sendinfo);
+
     }
 
     private void setEventListener() {
-        btn_getallpeers.setOnClickListener(v -> {
-            ThroughProcess.getInstance().setChannel(Client.getInstance().ch);
-            ThroughProcess.getInstance().setAddrManager(addrManager);
-            ThroughProcess.getInstance().sendSaveInfo();
-            ThroughProcess.getInstance().getConnectionsFromServer(Client.getInstance().ch);
-        });
         btn_getnattype.setOnClickListener(v -> {
-            DetectProcess.getInstance().setChannel(Client.getInstance().ch);
-            DetectProcess.getInstance().setAddrManager(addrManager);
+
             DetectProcess.getInstance().startDetect();
             Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
             Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
 
-//            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().address,
-//                    Client.getInstance().peerName, Client.getInstance().NAT_TYPE);
-            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().ch);
+            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().getChannels().get(0));
             Client.getInstance().localConnection = connection;
-//            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue(),""));
             tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
+        btn_sendinfo.setOnClickListener(v ->{
+            ThroughProcess.getInstance().sendSaveInfo();
+        });
+        btn_getallpeers.setOnClickListener(v -> {
+            ThroughProcess.getInstance().getConnectionsFromServer(Client.getInstance().getChannels().get(0));
+        });
+
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
-            ThroughProcess.getInstance().connectPeer(Client.getInstance().ch, connections.get(position),addrManager);
+            ThroughProcess.getInstance().connectPeer(Client.getInstance().getChannels().get(0), connections.get(position),Client.getInstance().getAddrManager());
             Client.getInstance().targetConnection = connections.get(position);
 //            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
         });
@@ -143,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
             txtTypeMsg.setContent("");
             Log.e(TAG,"txtTYpemsg:" + txtTypeMsg.getContent());
 //            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
-                RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
+                RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().SERVER1);
                 rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
         });
     }
@@ -153,142 +120,18 @@ public class MainActivity extends AppCompatActivity {
         lv_showallpeers.setAdapter(connectionAdapter);
     }
 
-    private void initClient() {
-        getLocalInetSocketAddress();
-        disruptorExectorPool = new DisruptorExectorPool();
-        IntStream.range(0,2).forEach(val -> disruptorExectorPool.createDisruptorProcessor("thread:" +val));
-
-        Identity.INDENTITY = Identity.Type.CLIENT.ordinal();
-
-        Client.getInstance().group = new NioEventLoopGroup(2);
-        try {
-            udpClientHandler = new UdpClientHandler(null, disruptorExectorPool, addrManager);
-            Client.getInstance().bootstrap = new Bootstrap();
-            Client.getInstance().bootstrap.group(Client.getInstance().group).channel(NioDatagramChannel.class)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT))
-                    .option(ChannelOption.SO_BROADCAST, true)
-                    .handler(new ChannelInitializer<Channel>() {
-                        @Override
-                        protected void initChannel(Channel channel) throws Exception {
-                            channel.pipeline().addLast(new IdleStateHandler(0, 10, 0, TimeUnit.SECONDS));
-                            channel.pipeline().addLast(udpClientHandler);
-                        }
-                    });
-//                    .handler(new UdpClientHandler());
-            Client.getInstance().ch = Client.getInstance().bootstrap.bind(Constants.PORT3).sync().channel();
-            RudpPack rudpPack = addrManager.get(Client.getInstance().SERVER1);
-            IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
-            if (rudpPack == null) {
-                Connection connection = new Connection("", Client.getInstance().SERVER1, "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), Client.getInstance().ch);
-                Output output = new ClientOutput();
-                rudpPack = new RudpPack(output, connection, executor, udpClientHandler, null);
-                addrManager.New(Client.getInstance().SERVER1, rudpPack);
+    private void initClient(){
+        udpClient = new UdpClient();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                udpClient.startClient();
+                DetectProcess.getInstance();
+                DetectProcess.getInstance().setChannel(Client.getInstance().getChannels().get(0));
+                ThroughProcess.getInstance();
+                ThroughProcess.getInstance().setChannel(Client.getInstance().getChannels().get(0));
             }
-
-            rudpPack.sendReset();
-
-            IMessageExecutor executor1 = disruptorExectorPool.getAutoDisruptorProcessor();
-            RudpPack rudpPack1 = addrManager.get(Client.getInstance().SERVER2P1);
-            if (rudpPack1 == null){
-                Connection connection = new Connection("",Client.getInstance().SERVER2P1,"server2p1",Constants.NATTYPE.PUBLIC_NETWORK.ordinal(),Client.getInstance().ch);
-                Output output = new ClientOutput();
-                rudpPack1 = new RudpPack(output,connection,executor1,udpClientHandler,null);
-                addrManager.New(Client.getInstance().SERVER2P1,rudpPack1);
-            }
-            rudpPack1.sendReset();
-            Client.getInstance().addrManager = addrManager;
-            RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
-            DisruptorExectorPool.scheduleHashedWheel(scheduleTask, rudpPack.getInterval());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-
-        }
-    }
-
-    private void getLocalInetSocketAddress() {
-        Client.getInstance();
-//            InetAddress address = InetAddress.getLocalHost();//获取的是本地的IP地址 //PC-20140317PXKX/192.168.0.121
-//            String hostAddress = address.getHostAddress();//192.168.0.121
-        Client.getInstance().local_address = getLocalIPAddress();
-        Client.getInstance().SERVER1 = SocketUtils.socketAddress(Constants.SERVER_HOST1, Constants.PORT1);
-        Client.getInstance().SERVER2P1 = SocketUtils.socketAddress(Constants.SERVER_HOST2, Constants.PORT1);
-        Client.getInstance().SERVER2P2 = SocketUtils.socketAddress(Constants.SERVER_HOST2, Constants.PORT2);
-        Client.getInstance().MAC_ADDRESS = getMacAddress();
-
-        //
-        tv_showlocalmac.setText(Client.getInstance().MAC_ADDRESS);
-        tv_showlocalip.setText(Client.getInstance().local_address);
-        tv_showlocalpeername.setText(Client.getInstance().peerName);
-    }
-
-    private String getLocalIPAddress() {
-        try {
-            String ip;
-            ConnectivityManager connMan = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = connMan.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-            NetworkInfo wifinetworkinfo = connMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (networkInfo.isConnected()) {
-                ip = getLocalIPv4Address();
-                return ip;
-            } else if (wifinetworkinfo.isConnected()) {
-                WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                int ipaddress = wifiInfo.getIpAddress();
-                ip = int2Ip(ipaddress);
-                return ip;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private String int2Ip(int ipaddress) {
-        return (ipaddress & 0xFF) + "." + ((ipaddress >> 8) & 0xFF) + "." + ((ipaddress >> 16) & 0xFF) + "." + ((ipaddress >> 24) & 0xFF);
-    }
-
-    private String getLocalIPv4Address() {
-        try {
-            String ip;
-            ArrayList<NetworkInterface> nilist = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for (NetworkInterface ni : nilist) {
-                ArrayList<InetAddress> iaList = Collections.list(ni.getInetAddresses());
-                for (InetAddress addr : iaList) {
-                    if (!addr.isLoopbackAddress() && !addr.isLinkLocalAddress()) {
-                        ip = addr.getHostAddress();
-                        return ip;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private String getMacAddress() {
-        try {
-            String macAddress = null;
-            StringBuffer sb = new StringBuffer();
-            NetworkInterface networkInterface = null;
-            networkInterface = NetworkInterface.getByName("eth1");
-            if (networkInterface == null)
-                networkInterface = NetworkInterface.getByName("wlan0");
-            if (networkInterface == null)
-                return "02:00:00:00:00:02";
-            byte[] addr = networkInterface.getHardwareAddress();
-            for (byte b : addr) {
-                sb.append(String.format("%02X:", b));
-            }
-            if (sb.length() > 0) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            macAddress = sb.toString();
-            return macAddress;
-        } catch (SocketException e) {
-            return "";
-        }
+        }).start();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)

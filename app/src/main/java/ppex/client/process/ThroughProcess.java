@@ -29,7 +29,7 @@ public class ThroughProcess {
 
     private static ThroughProcess instance = null;
 
-    private IAddrManager addrManager;
+    private IAddrManager addrManager = Client.getInstance().getAddrManager();
 
     private ThroughProcess() {
     }
@@ -44,10 +44,6 @@ public class ThroughProcess {
 
     public void setChannel(Channel channel) {
         this.channel = channel;
-    }
-
-    public void setAddrManager(IAddrManager addrManager) {
-        this.addrManager = addrManager;
     }
 
     public void sendSaveInfo() {

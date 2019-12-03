@@ -3,29 +3,16 @@ package ppex.proto.rudp;
 import java.util.Queue;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.Recycler;
 import ppex.proto.msg.Message;
 import ppex.utils.tpool.ITask;
 
 public class RcvTask implements ITask {
 
 
-    private final Recycler.Handle<RcvTask> recyclerHandler;
-    private static final Recycler<RcvTask> RECYCLER = new Recycler<RcvTask>() {
-        @Override
-        protected RcvTask newObject(Handle<RcvTask> handle) {
-            return new RcvTask(handle);
-        }
-    };
-
-    private RcvTask(Recycler.Handle<RcvTask> recyclerHandler) {
-        this.recyclerHandler = recyclerHandler;
-    }
-
     private RudpPack rudpkg;
 
     public static RcvTask New(RudpPack rudpkg) {
-        RcvTask rcvTask = RECYCLER.get();
+        RcvTask rcvTask = new RcvTask();
         rcvTask.rudpkg = rudpkg;
         return rcvTask;
     }
@@ -70,6 +57,5 @@ public class RcvTask implements ITask {
 
     private void release() {
         rudpkg = null;
-        recyclerHandler.recycle(this);
     }
 }

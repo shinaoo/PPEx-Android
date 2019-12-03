@@ -11,7 +11,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
-import io.netty.util.internal.SocketUtils;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.type.FileTypeMsg;
 import ppex.proto.msg.type.PingTypeMsg;
@@ -30,7 +29,7 @@ public class MessageUtil {
     public static ByteBuf msg2ByteBuf(Message msg) {
         ByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
         ByteBuf msgBuf = allocator.ioBuffer(msg.getLength() + Message.VERSIONLENGTH + Message.CONTENTLENGTH + 1);
-        msgBuf.writeLongLE(msg.getMsgid());
+        msgBuf.writeLong(msg.getMsgid());
         msgBuf.writeByte(msg.getVersion());
         msgBuf.writeInt(msg.getLength());
         byte[] bytes = msg.getContent().getBytes(CharsetUtil.UTF_8);
@@ -42,7 +41,7 @@ public class MessageUtil {
         if (byteBuf.readableBytes() < (Message.VERSIONLENGTH + Message.CONTENTLENGTH + Message.ID_LEN)) {
             return null;
         }
-        long msgid = byteBuf.readLongLE();
+        long msgid = byteBuf.readLong();
         byte version = byteBuf.readByte();
         if (version != Constants.MSG_VERSION) {
             return null;
@@ -77,7 +76,7 @@ public class MessageUtil {
     }
 
     public static DatagramPacket msg2Packet(Message message, String host, int port) {
-        return new DatagramPacket(msg2ByteBuf(message), SocketUtils.socketAddress(host, port));
+        return new DatagramPacket(msg2ByteBuf(message),new InetSocketAddress(host,port));
     }
 
     public static DatagramPacket typemsg2Packet(TypeMessage typeMessage, InetSocketAddress inetSocketAddress) {
@@ -87,7 +86,7 @@ public class MessageUtil {
     }
 
     public static DatagramPacket typemsg2Packet(TypeMessage typeMessage, String host, int port) {
-        return typemsg2Packet(typeMessage, SocketUtils.socketAddress(host, port));
+        return typemsg2Packet(typeMessage, new InetSocketAddress(host,port));
     }
 
     public static DatagramPacket probemsg2Packet(ProbeTypeMsg msg, InetSocketAddress address) {
@@ -98,7 +97,7 @@ public class MessageUtil {
     }
 
     public static DatagramPacket probemsg2Packet(ProbeTypeMsg probeTypeMsg, String host, int port) {
-        return probemsg2Packet(probeTypeMsg, SocketUtils.socketAddress(host, port));
+        return probemsg2Packet(probeTypeMsg, new InetSocketAddress(host,port));
     }
 
 
@@ -110,7 +109,7 @@ public class MessageUtil {
     }
 
     public static DatagramPacket throughmsg2Packet(ThroughTypeMsg msg, String host, int port) {
-        return throughmsg2Packet(msg, SocketUtils.socketAddress(host, port));
+        return throughmsg2Packet(msg, new InetSocketAddress(host,port));
     }
 
     public static DatagramPacket pingMsg2Packet(PingTypeMsg msg, InetSocketAddress address) {
@@ -121,11 +120,11 @@ public class MessageUtil {
     }
 
     public static DatagramPacket pingMsg2Packet(PingTypeMsg msg, String host, int port) {
-        return pingMsg2Packet(msg, SocketUtils.socketAddress(host, port));
+        return pingMsg2Packet(msg, new InetSocketAddress(host,port));
     }
 
     public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, String host, int port) {
-        return pongMsg2Packet(msg, SocketUtils.socketAddress(host, port));
+        return pongMsg2Packet(msg, new InetSocketAddress(host,port));
     }
 
     public static DatagramPacket pongMsg2Packet(PongTypeMsg msg, InetSocketAddress address) {
@@ -314,7 +313,7 @@ public class MessageUtil {
      * ----------------------------------------------生成探测ProbeTypeMsg部分----------------------------------------------------
      */
     public static ProbeTypeMsg makeClientStepOneProbeTypeMsg(String host, int port) {
-        return makeClientStepOneProbeTypeMsg(SocketUtils.socketAddress(host, port));
+        return makeClientStepOneProbeTypeMsg(new InetSocketAddress(host,port));
     }
 
     public static ProbeTypeMsg makeClientStepOneProbeTypeMsg(InetSocketAddress inetSocketAddress) {
@@ -325,7 +324,7 @@ public class MessageUtil {
     }
 
     public static ProbeTypeMsg makeClientStepTwoProbeTypeMsg(String host, int port) {
-        return makeClientStepTwoProbeTypeMsg(SocketUtils.socketAddress(host, port));
+        return makeClientStepTwoProbeTypeMsg(new InetSocketAddress(host,port));
     }
 
     public static ProbeTypeMsg makeClientStepTwoProbeTypeMsg(InetSocketAddress inetSocketAddress) {

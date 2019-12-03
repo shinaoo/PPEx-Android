@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">PPEx-Android</string>
     <string name="get_nattype">GetNatType</string>
+    <string name="send_info">SendInfo</string>
     <string name="get_allpeers">GetAllPeers</string>
     <string name="macaddress">MacAdress</string>
     <string name="peername">PeerName</string>

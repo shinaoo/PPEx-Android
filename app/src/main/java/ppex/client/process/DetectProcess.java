@@ -24,7 +24,7 @@ public class DetectProcess {
     public boolean stop = false;
 
     private Channel channel;
-    private IAddrManager addrManager;
+    private IAddrManager addrManager = Client.getInstance().getAddrManager();
 
     public static DetectProcess instance = null;
 
@@ -57,21 +57,13 @@ public class DetectProcess {
         this.channel = channel;
     }
 
-    public void setAddrManager(IAddrManager addrManager) {
-        this.addrManager = addrManager;
-    }
-
     public void startDetect() {
         try {
             one_send2s1();
             two_send2s2p1();
-//            while (!stop) {
-//                System.out.println("Client sleep 2000");
-//                Thread.sleep(2000);
+//            if (!channel.closeFuture().await(2000)){
+//                Log.e(TAG,"查询超时");
 //            }
-            if (!channel.closeFuture().await(2000)){
-                Log.e(TAG,"查询超时");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }

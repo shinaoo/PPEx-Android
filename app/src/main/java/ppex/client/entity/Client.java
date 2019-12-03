@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import ppex.client.socket.ClientAddrManager;
 import ppex.proto.msg.entity.through.Connect;
 import ppex.proto.msg.entity.through.ConnectMap;
 import ppex.proto.msg.entity.Connection;
@@ -31,13 +32,13 @@ public class Client {
 
     public EventLoopGroup group;
     public Bootstrap bootstrap;
-    public Channel ch;
+    private List<Channel> channels = new ArrayList<>();
+    private IAddrManager addrManager = ClientAddrManager.getInstance();
 
     public long id = 1;
     public String peerName = "client1";
     public InetSocketAddress address;
     public int NAT_TYPE = Constants.NATTYPE.UNKNOWN.ordinal();
-    public IAddrManager addrManager;
 
     public String local_address = null;
     public String MAC_ADDRESS=null;
@@ -84,4 +85,19 @@ public class Client {
         });
     }
 
+    public List<Channel> getChannels() {
+        return channels;
+    }
+
+    public void setChannels(List<Channel> channels) {
+        this.channels = channels;
+    }
+
+    public IAddrManager getAddrManager() {
+        return addrManager;
+    }
+
+    public void setAddrManager(IAddrManager addrManager) {
+        this.addrManager = addrManager;
+    }
 }

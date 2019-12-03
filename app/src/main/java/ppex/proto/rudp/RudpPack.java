@@ -58,7 +58,7 @@ public class RudpPack {
     }
 
     public void read(ByteBuf buf){
-        this.queue_rcv.add(buf.readRetainedSlice(buf.readableBytes()));
+        this.queue_rcv.add(buf.readSlice(buf.readableBytes()));
         notifyRcvEvent();
     }
 

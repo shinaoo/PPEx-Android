@@ -38,6 +38,7 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
             }
             if (!rudpPack.isActive()){
                 Connection connection = rudpPack.getConnection();
+                connection.getChannel().close();
 //                connection.getChannel().eventLoop().execute(()-> addrManager.Del(connection.getAddress()));
                 rudpPack.release();
                 this.addrManager.Del(rudpPack);

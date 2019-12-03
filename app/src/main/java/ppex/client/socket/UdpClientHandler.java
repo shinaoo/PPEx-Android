@@ -17,8 +17,6 @@ import ppex.proto.msg.StandardMessageHandler;
 import ppex.proto.msg.entity.Connection;
 import ppex.proto.msg.type.PingTypeMsg;
 import ppex.proto.msg.type.TypeMessage;
-import ppex.proto.pcp.IChannelManager;
-import ppex.proto.pcp.PcpListener;
 import ppex.proto.rudp.IAddrManager;
 import ppex.proto.rudp.Output;
 import ppex.proto.rudp.ResponseListener;
@@ -35,19 +33,16 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     private MessageHandler msgHandler;
 
-    private PcpListener pcpListener;
     private DisruptorExectorPool disruptorExectorPool;
-    private IChannelManager channelManager;
     private IAddrManager addrManager;
 
-    public UdpClientHandler(PcpListener pcpListener, DisruptorExectorPool disruptorExectorPool, IAddrManager addrManager) {
+    public UdpClientHandler(DisruptorExectorPool disruptorExectorPool, IAddrManager addrManager) {
         msgHandler = StandardMessageHandler.New();
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_PROBE.ordinal(), new ProbeTypeMsgHandler());
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_THROUGH.ordinal(), new ThroughTypeMsgHandler());
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_HEART_PONG.ordinal(), new PongTypeMsgHandler());
         ((StandardMessageHandler) msgHandler).addTypeMessageHandler(TypeMessage.Type.MSG_TYPE_TXT.ordinal(), new TxtTypeMsgHandler());
 
-        this.pcpListener = pcpListener;
         this.disruptorExectorPool = disruptorExectorPool;
         this.addrManager = addrManager;
     }
@@ -133,7 +128,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     @Override
     public void onResponse(ChannelHandlerContext ctx, RudpPack rudpPack, Message message) {
-        Log.e(TAG,"onresponse:" + message.getContent());
         msgHandler.handleMessage(ctx,rudpPack,addrManager,message);
     }
 }

@@ -1,8 +1,8 @@
 package ppex.proto.msg.entity;
 
-import java.net.InetSocketAddress;
-
 import io.netty.channel.Channel;
+
+import java.net.InetSocketAddress;
 
 public class Connection {
 

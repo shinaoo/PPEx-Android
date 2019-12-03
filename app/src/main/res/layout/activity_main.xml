@@ -93,6 +93,19 @@
             android:layout_height="wrap_content"
             android:text="@string/get_nattype"></TextView>
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_main_sendinfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/send_info"></Button>
+
+    </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"

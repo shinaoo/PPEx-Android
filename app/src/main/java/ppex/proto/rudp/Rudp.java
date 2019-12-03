@@ -106,7 +106,7 @@ public class Rudp {
             count = 1;
         for (int i = 0; i < count; i++) {
             int size = len > mss ? mss : len;
-            Frg frg = Frg.createFrg(buf.readRetainedSlice(size));
+            Frg frg = Frg.createFrg(buf.readSlice(size));
             frg.tot = (count - i - 1);
             frg.msgid = msgid;
             queue_snd.add(frg);
@@ -220,13 +220,13 @@ public class Rudp {
     private int encodeFlushBuf(ByteBuf buf, Frg frg) {
         int offset = buf.writerIndex();
         buf.writeByte(frg.cmd);
-        buf.writeLongLE(frg.msgid);
-        buf.writeIntLE(frg.tot);
-        buf.writeIntLE(frg.wnd);
-        buf.writeLongLE(frg.ts);
-        buf.writeLongLE(frg.sn);
-        buf.writeLongLE(frg.una);
-        buf.writeIntLE(frg.data.readableBytes());
+        buf.writeLong(frg.msgid);
+        buf.writeInt(frg.tot);
+        buf.writeInt(frg.wnd);
+        buf.writeLong(frg.ts);
+        buf.writeLong(frg.sn);
+        buf.writeLong(frg.una);
+        buf.writeInt(frg.data.readableBytes());
         return buf.writerIndex() - offset;
     }
 
@@ -243,13 +243,13 @@ public class Rudp {
                 break;
             }
             cmd = data.readByte();
-            msgid = data.readLongLE();
-            tot = data.readIntLE();
-            wnd = data.readIntLE();
-            ts = data.readLongLE();
-            sn = data.readLongLE();
-            una = data.readLongLE();
-            len = data.readIntLE();
+            msgid = data.readLong();
+            tot = data.readInt();
+            wnd = data.readInt();
+            ts = data.readLong();
+            sn = data.readLong();
+            una = data.readLong();
+            len = data.readInt();
             if (data.readableBytes() < len) {
                 return -2;
             }
@@ -270,7 +270,7 @@ public class Rudp {
                         flushAck(sn, ts, msgid);          //返回ack
                         Frg frg;
                         if (len > 0) {
-                            frg = Frg.createFrg(data.readRetainedSlice(len));
+                            frg = Frg.createFrg(data.readSlice(len));
                         } else {
                             frg = Frg.createFrg(byteBufAllocator, 0);
                         }
