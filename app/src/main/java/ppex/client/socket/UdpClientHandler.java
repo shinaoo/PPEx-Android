@@ -50,18 +50,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
         try {
-            Channel channel = channelHandlerContext.channel();
-//            LOGGER.info("ClientHandler channel local:" + channel.localAddress() + " remote:" + channel.remoteAddress());
-//            PcpPack pcpPack = channelManager.get(channel,datagramPacket.sender());
-//            if (pcpPack == null){
-//                Connection connection = new Connection("",datagramPacket.sender(),"From1", Constants.NATTYPE.UNKNOWN.ordinal(),channel);
-//                IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
-//                PcpOutput pcpOutput = new ClientOutput();
-//                pcpPack = new PcpPack(0x1,null,executor,connection,pcpOutput);
-//                channelManager.New(channel,pcpPack);
-//            }
-//            pcpPack.read(datagramPacket.content());
-
+//            Channel channel = channelHandlerContext.channel();
             RudpPack rudpPack = addrManager.get(datagramPacket.sender());
             if (rudpPack != null) {
                 rudpPack.getConnection().setAddress(datagramPacket.sender());
@@ -71,7 +60,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
                 return;
             }
             IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
-            Connection connection = new Connection("", datagramPacket.sender(), "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), channel);
+            Connection connection = new Connection("", datagramPacket.sender(), "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), channelHandlerContext.channel());
             Output output = new ClientOutput();
             rudpPack = new RudpPack(output, connection, executor, null, channelHandlerContext);
             addrManager.New(datagramPacket.sender(), rudpPack);

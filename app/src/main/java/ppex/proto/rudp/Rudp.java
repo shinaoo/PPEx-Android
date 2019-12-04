@@ -105,7 +105,6 @@ public class Rudp {
         if (count == 0)
             count = 1;
         ByteBuf bufduplicate = buf.duplicate();
-        buf.release();
         for (int i = 0; i < count; i++) {
             int size = len > mss ? mss : len;
             Frg frg = Frg.createFrg(bufduplicate.readSlice(size));
@@ -114,7 +113,7 @@ public class Rudp {
             queue_snd.add(frg);
             len = buf.readableBytes();
         }
-        bufduplicate.release();
+        buf.release();
         return 0;
     }
 
@@ -191,7 +190,7 @@ public class Rudp {
                 if (frg.data.readableBytes() > 0) {
                     flushbuf.writeBytes(frg.data, frg.data.readerIndex(), frg.data.readableBytes());
                 }
-                output(flushbuf,frg.sn);
+                output(flushbuf, frg.sn);
             }
         }
         return interval;
@@ -207,9 +206,9 @@ public class Rudp {
         return tmp < 0 ? 0 : tmp;
     }
 
-    private void output(ByteBuf buf,long sn) {
+    private void output(ByteBuf buf, long sn) {
         if (buf.readableBytes() > 0) {
-            output.output(buf, this,sn);
+            output.output(buf, this, sn);
             return;
         }
         buf.release();
@@ -303,11 +302,11 @@ public class Rudp {
     }
 
     private void parseUna(long una) {
-        for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
+        for (Iterator<Frg> itr = queue_sndack.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
-            if (itimediff(una,frg.sn) > 0){
+            if (itimediff(una, frg.sn) > 0) {
                 itr.remove();
-            }else{
+            } else {
                 break;
             }
         }
@@ -326,9 +325,9 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        for (Iterator<Frg> itr = queue_sndack.iterator();itr.hasNext();){
+        for (Iterator<Frg> itr = queue_sndack.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
-            if (sn == frg.sn){
+            if (sn == frg.sn) {
                 itr.remove();
                 break;
             }
@@ -339,12 +338,12 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        for (Iterator<Frg> iterator = queue_sndack.iterator();iterator.hasNext();){
+        for (Iterator<Frg> iterator = queue_sndack.iterator(); iterator.hasNext(); ) {
             Frg frg = iterator.next();
-            if (itimediff(sn,frg.sn) < 0){
+            if (itimediff(sn, frg.sn) < 0) {
                 break;
-            }else if (sn != frg.sn && itimediff(frg.ts,ts)<=0){
-                frg.fastack ++;
+            } else if (sn != frg.sn && itimediff(frg.ts, ts) <= 0) {
+                frg.fastack++;
             }
         }
     }
@@ -360,7 +359,7 @@ public class Rudp {
         frg.tot = 0;
         ByteBuf flushbuf = createEmptyByteBuf(HEAD_LEN);
         encodeFlushBuf(flushbuf, frg);
-        output(flushbuf,frg.sn);
+        output(flushbuf, frg.sn);
     }
 
     private void parseRcvData(Frg frg) {
@@ -373,9 +372,9 @@ public class Rudp {
         Iterator<Frg> itr = null;
         if (queue_rcv_shambles.size() > 0) {
             itr = queue_rcv_shambles.iterator();
-            while(itr.hasNext()){
+            while (itr.hasNext()) {
                 Frg frgTmp = itr.next();
-                if (frgTmp.sn == sn){
+                if (frgTmp.sn == sn) {
                     repeat = true;
                     break;
                 }
@@ -391,20 +390,20 @@ public class Rudp {
             queue_rcv_shambles.add(frg);
         } else {
 //            if (findPos)
-                queue_rcv_shambles.add(frg);
+            queue_rcv_shambles.add(frg);
         }
     }
 
     private void arrangeRcvData() {
-        for(Iterator<Frg> itr = queue_rcv_shambles.iterator();itr.hasNext();){
+        for (Iterator<Frg> itr = queue_rcv_shambles.iterator(); itr.hasNext(); ) {
             Frg frg = itr.next();
-            if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv){
+            if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv) {
                 itr.remove();
                 queue_rcv_order.add(frg);
                 rcv_nxt++;
-            }else if(frg.sn < rcv_nxt){
+            } else if (frg.sn < rcv_nxt) {
                 itr.remove();
-            }else{
+            } else {
                 break;
             }
         }
@@ -486,7 +485,7 @@ public class Rudp {
         //todo 解决服务器没断开,而客户端已经重开然后重连的情况.增加CMD_RESET
         snd_nxt = 0;
         snd_una = snd_nxt;
-        rcv_nxt=0;
+        rcv_nxt = 0;
         rcv_nxt++;
     }
 

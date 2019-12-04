@@ -28,11 +28,13 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import ppex.client.entity.Client;
 import ppex.proto.msg.entity.Connection;
+import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.rudp.Output;
 import ppex.proto.rudp.RudpPack;
 import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.Constants;
 import ppex.utils.Identity;
+import ppex.utils.MessageUtil;
 import ppex.utils.tpool.DisruptorExectorPool;
 import ppex.utils.tpool.IMessageExecutor;
 
@@ -56,7 +58,7 @@ public class UdpClient {
 
             Client.getInstance().bootstrap.channel(channelCls);
             Client.getInstance().bootstrap.group(Client.getInstance().group);
-            Client.getInstance().bootstrap.option(EpollChannelOption.SO_REUSEPORT, true);
+//            Client.getInstance().bootstrap.option(EpollChannelOption.SO_REUSEPORT, true);
             Client.getInstance().bootstrap.option(ChannelOption.SO_BROADCAST, true).option(ChannelOption.SO_REUSEADDR, true);
 //                    .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT));
 
@@ -64,7 +66,7 @@ public class UdpClient {
             Client.getInstance().bootstrap.handler(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel channel) throws Exception {
-                    channel.pipeline().addLast(new IdleStateHandler(0, 7, 0, TimeUnit.SECONDS));
+                    channel.pipeline().addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                     channel.pipeline().addLast(udpClientHandler);
                 }
             });
@@ -75,11 +77,19 @@ public class UdpClient {
             RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().SERVER1);
             IMessageExecutor executor = disruptorExectorPool.getAutoDisruptorProcessor();
             if (rudpPack == null) {
-                Connection connection = new Connection("", Client.getInstance().SERVER1, "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), ch);
+                Connection connection = new Connection("", Client.getInstance().SERVER1, "server1", Constants.NATTYPE.PUBLIC_NETWORK.ordinal(), Client.getInstance().getChannels().get(0));
                 Output output = new ClientOutput();
                 rudpPack = new RudpPack(output, connection, executor, null, null);
                 Client.getInstance().getAddrManager().New(Client.getInstance().SERVER1, rudpPack);
             }
+
+            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+            txtTypeMsg.setTo(new InetSocketAddress("127.0.0.1",9123));
+            txtTypeMsg.setFrom(new InetSocketAddress("127.0.0.1",9124));
+            txtTypeMsg.setReq(true);
+            txtTypeMsg.setContent("this is from client");
+            rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+
             RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, Client.getInstance().getAddrManager());
             DisruptorExectorPool.scheduleHashedWheel(scheduleTask, rudpPack.getInterval());
 

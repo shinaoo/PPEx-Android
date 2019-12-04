@@ -60,7 +60,7 @@ public class DetectProcess {
     public void startDetect() {
         try {
             one_send2s1();
-            two_send2s2p1();
+//            two_send2s2p1();
 //            if (!channel.closeFuture().await(2000)){
 //                Log.e(TAG,"查询超时");
 //            }
