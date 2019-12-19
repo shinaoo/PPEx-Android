@@ -2,6 +2,7 @@ package ppex.androidcomponent;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -72,17 +73,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setEventListener() {
         btn_getnattype.setOnClickListener(v -> {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    DetectProcess.getInstance().startDetect();
-                    try {
-                        TimeUnit.SECONDS.sleep(3);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue()));
+            new Thread(() -> {
+                DetectProcess.getInstance().startDetect();
+                try {
+                    TimeUnit.SECONDS.sleep(3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+                EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue()));
             }).start();
 //            Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
 //            Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
@@ -142,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     public void handleMainThreadEvent(BusEvent event) {
         switch (BusEvent.Type.getByValue(event.getType())) {
             case DETECT_END_OF:
+                Log.e("MyTag","Detect end");
                 tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
                 break;
             case THROUGH_GET_INFO:

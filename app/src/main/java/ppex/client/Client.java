@@ -1,5 +1,9 @@
 package ppex.client;
 
+import android.content.Context;
+import android.net.InetAddresses;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import io.netty.bootstrap.Bootstrap;
@@ -81,14 +85,15 @@ public class Client {
         startBootstrap();
         initRudp();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
-        System.out.println("addrLocal:" + addrLocal.toString());
     }
 
     private void initParam() {
 
         name = "Client1";
-        addrMac = getMacAddress();
-        addrLocal = getLocalIpAddr();
+//        addrMac = getMacAddress();
+//        addrLocal = getLocalIpAddr();
+        addrMac = getLocalMacAddressFromIp();
+        addrLocal = new InetSocketAddress(getLocalHostIp(),PORT_3);
 
         addrServer1 = new InetSocketAddress(HOST_SERVER1, PORT_1);
         addrServer2p1 = new InetSocketAddress(HOST_SERVER2, PORT_1);
@@ -200,6 +205,90 @@ public class Client {
             return "";
         }
         return "";
+    }
+
+    //android获取本地IP和mac
+    public String getLocalMacAddressFromIp() {
+        String mac_s= "";
+        try {
+            byte[] mac;
+            NetworkInterface ne=NetworkInterface.getByInetAddress(InetAddress.getByName(getLocalHostIp()));
+            mac = ne.getHardwareAddress();
+            mac_s = byte2hex(mac);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return mac_s;
+    }
+
+    public  String byte2hex(byte[] b) {
+        StringBuffer hs = new StringBuffer(b.length);
+        String stmp = "";
+        int len = b.length;
+        for (int n = 0; n < len; n++) {
+            stmp = Integer.toHexString(b[n] & 0xFF);
+            if (stmp.length() == 1)
+                hs = hs.append("0").append(stmp);
+            else {
+                hs = hs.append(stmp);
+            }
+        }
+        return String.valueOf(hs);
+    }
+
+    public String getLocalIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface
+                    .getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf
+                        .getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("WifiPreference IpAddress", ex.toString());
+        }
+
+        return null;
+    }
+
+    public String getLocalHostIp()
+    {
+        String ipaddress = "";
+        try
+        {
+            Enumeration<NetworkInterface> en = NetworkInterface
+                    .getNetworkInterfaces();
+            // 遍历所用的网络接口
+            while (en.hasMoreElements())
+            {
+                NetworkInterface nif = en.nextElement();// 得到每一个网络接口绑定的所有ip
+                Enumeration<InetAddress> inet = nif.getInetAddresses();
+                // 遍历每一个接口绑定的所有ip
+                while (inet.hasMoreElements())
+                {
+                    InetAddress ip = inet.nextElement();
+                    // 在这里如果不加isIPv4Address的判断,直接返回,在4.0上获取到的是类似于fe80::1826:66ff:fe23:48e%p2p0的ipv6的地址
+                    if (!ip.isLoopbackAddress() && ip instanceof Inet4Address)
+                    {
+                        return ipaddress = ip.getHostAddress();
+                    }
+                }
+
+            }
+        }
+        catch (SocketException e)
+        {
+            Log.e("feige", "获取本地ip地址失败");
+            e.printStackTrace();
+        }
+        return ipaddress;
+
     }
 
     public void sendTest() {
