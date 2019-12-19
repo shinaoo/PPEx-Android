@@ -9,8 +9,8 @@ import android.widget.TextView;
 import java.util.List;
 
 import ppex.client.R;
-import ppex.proto.msg.entity.Connection;
-import ppex.utils.Constants;
+import ppex.proto.entity.Connection;
+import ppex.utils.NatTypeUtil;
 
 public class ConnectionAdapter extends BaseAdapter {
 
@@ -60,7 +60,7 @@ public class ConnectionAdapter extends BaseAdapter {
         holder.tv_shownetsocketaddress.setText(connection.getAddress() == null ? "" : connection.getAddress().toString());
         holder.tv_showpeername.setText(connection.getPeerName());
         holder.tv_showmacaddress.setText(connection.getMacAddress());
-        holder.tv_shownattype.setText(Constants.getNatStrByValue(connection.natType));
+        holder.tv_shownattype.setText(NatTypeUtil.getNatStrByValue(connection.getNatType()));
 
         return convertView;
     }

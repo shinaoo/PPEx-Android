@@ -6,23 +6,22 @@ import org.junit.Test;
 
 import ppex.client.process.DetectProcess;
 import ppex.client.process.ThroughProcess;
-import ppex.client.socket.UdpClient;
 
 public class DetectTest {
 
-    UdpClient client;
+//    UdpClient client;
     ThroughProcess throughProcess;
 
     @Before
     public void setUp(){
-        client = new UdpClient();
-        client.startClient();
+//        client = new UdpClient();
+//        client.startClient();
         System.out.println("setup run");
     }
 
     @After
     public void finish(){
-        client.stop();
+//        client.stop();
         System.out.println("finish run");
     }
 

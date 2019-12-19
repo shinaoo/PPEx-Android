@@ -43,7 +43,7 @@ public class MessageUtil {
         }
         long msgid = byteBuf.readLong();
         byte version = byteBuf.readByte();
-        if (version != Constants.MSG_VERSION) {
+        if (version != 1) {
             return null;
         }
         int length = byteBuf.readInt();

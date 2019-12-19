@@ -3,7 +3,6 @@ package ppex.proto.msg;
 import com.alibaba.fastjson.JSON;
 import io.netty.util.CharsetUtil;
 import ppex.proto.msg.type.TypeMessage;
-import ppex.utils.Constants;
 
 /**
  * -----16bits-----+-----16bits-----+-----32bits------+-----content-----+
@@ -36,7 +35,7 @@ public class Message {
 
     public Message(long msgid) {
         this.msgid = msgid;
-        this.version = Constants.MSG_VERSION;
+        this.version = 1;
     }
 
     public byte getVersion() {

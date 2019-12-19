@@ -1,18 +1,16 @@
 package ppex.proto.rudp;
 
 import io.netty.util.Timeout;
-import io.netty.util.TimerTask;
-import ppex.proto.msg.entity.Connection;
-import ppex.utils.tpool.DisruptorExectorPool;
-import ppex.utils.tpool.IMessageExecutor;
-import ppex.utils.tpool.ITask;
+import ppex.client.Client;
+import ppex.proto.tpool.ITask;
+import ppex.proto.tpool.IThreadExecute;
 
-public class RudpScheduleTask implements ITask,Runnable, TimerTask {
-    private IMessageExecutor executor;
+public class RudpScheduleTask implements ITask {
+    private IThreadExecute executor;
     private RudpPack rudpPack;
     private IAddrManager addrManager;
 
-    public RudpScheduleTask(IMessageExecutor executor, RudpPack rudpPack, IAddrManager addrManager) {
+    public RudpScheduleTask(IThreadExecute executor, RudpPack rudpPack, IAddrManager addrManager) {
         this.executor = executor;
         this.rudpPack = rudpPack;
         this.addrManager = addrManager;
@@ -20,12 +18,12 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
 
     @Override
     public void run(Timeout timeout) throws Exception {
-        run();
+        execute();
     }
 
     @Override
     public void run() {
-        this.executor.execute(this);
+        execute();
     }
 
     @Override
@@ -37,21 +35,23 @@ public class RudpScheduleTask implements ITask,Runnable, TimerTask {
                 rudpPack.close();
             }
             if (!rudpPack.isActive()){
-                Connection connection = rudpPack.getConnection();
-                connection.getChannel().close();
-//                connection.getChannel().eventLoop().execute(()-> addrManager.Del(connection.getAddress()));
                 rudpPack.release();
-                this.addrManager.Del(rudpPack);
+                Client.getInstance().getOutputManager().del(rudpPack.getOutput().getConn().getAddress());
+                addrManager.Del(rudpPack);
+                rudpPack = null;
                 return;
             }
-            //            long next = pcpPack.flush(now);
-//            //这个Next时间要看后面得到的时间长短来确定
-//            DisruptorExectorPool.scheduleHashedWheel(this, next);
-//            if (!pcpPack.getSndList().isEmpty() && pcpPack.canSend(false)) {
-//                pcpPack.notifyWriteEvent();
-//            }
-            long next = rudpPack.flush(now);
-            DisruptorExectorPool.scheduleHashedWheel(this,next);
+            if (rudpPack.isStop()){
+                rudpPack.release();
+                Client.getInstance().getOutputManager().del(rudpPack.getOutput().getConn().getAddress());
+                addrManager.Del(rudpPack);
+                rudpPack = null;
+                return;
+            }
+            //这个Next时间要看后面得到的时间长短来确定
+//            System.out.println("Schedule task flush thread:" + Thread.currentThread().getName());
+            long next = rudpPack.flush(now,true);
+            executor.executeTimerTask(this,next);
             if (!rudpPack.getQueue_snd().isEmpty() && rudpPack.canSend(false)){
                 rudpPack.notifySendEvent();
             }

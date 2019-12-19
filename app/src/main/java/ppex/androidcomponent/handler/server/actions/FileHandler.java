@@ -10,10 +10,10 @@ import java.util.List;
 
 import ppex.androidcomponent.handler.AndroidRequest;
 import ppex.androidcomponent.utils.RequestUtil;
-import ppex.proto.msg.entity.testpack.Files;
-import ppex.proto.msg.entity.txt.Request;
-import ppex.proto.msg.entity.txt.RequestHandle;
-import ppex.proto.msg.entity.txt.Response;
+import ppex.proto.entity.testpack.Files;
+import ppex.proto.entity.txt.Request;
+import ppex.proto.entity.txt.RequestHandle;
+import ppex.proto.entity.txt.Response;
 
 public class FileHandler implements RequestHandle {
 

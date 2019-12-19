@@ -21,6 +21,13 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 dependencies {
@@ -36,9 +43,15 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 
-    implementation 'org.apache.logging.log4j:log4j:2.12.1'
-
     implementation group: 'com.lmax', name: 'disruptor', version: '3.4.2'
     implementation group: 'org.jctools', name: 'jctools-core', version: '2.1.2'
+
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
+    implementation "org.slf4j:jul-to-slf4j:$slf4j_version"
+    implementation "org.slf4j:jcl-over-slf4j:$slf4j_version"
+    implementation "org.slf4j:log4j-over-slf4j:$slf4j_version"
+    implementation "org.apache.logging.log4j:log4j-api:$log4j2_version"
+    implementation "org.apache.logging.log4j:log4j-to-slf4j:$log4j2_version"
+    implementation "ch.qos.logback:logback-classic:$logback_version"
 
 }

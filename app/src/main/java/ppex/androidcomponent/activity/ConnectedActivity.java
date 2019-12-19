@@ -27,10 +27,10 @@ import androidx.annotation.Nullable;
 import ppex.androidcomponent.adapter.FilesAdapter;
 import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.handler.client.RequestClient;
+import ppex.client.Client;
 import ppex.client.R;
-import ppex.client.entity.Client;
-import ppex.client.socket.ClientAddrManager;
-import ppex.proto.msg.entity.testpack.Files;
+import ppex.client.rudp.ClientAddrManager;
+import ppex.proto.entity.testpack.Files;
 
 public class ConnectedActivity extends Activity {
 
@@ -48,6 +48,7 @@ public class ConnectedActivity extends Activity {
 
     private FilesAdapter filesAdapter;
     private List<Files> files;
+    private Client client;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,7 +69,7 @@ public class ConnectedActivity extends Activity {
     }
 
     private void getIntentValue(){
-        connectType = Client.getInstance().connectedMaps.get(0).getConnectType();
+        connectType = Client.getInstance().getConnType2Target().ordinal();
         Log.e(TAG,"connectype is :" + connectType);
         RequestClient.getDefault();
         sdFile = Environment.getExternalStorageDirectory();
@@ -83,7 +84,7 @@ public class ConnectedActivity extends Activity {
         btn_send = findViewById(R.id.btn_connected_send);
         et_content = findViewById(R.id.et_connected_content);
 
-        tv_title.setText(Client.getInstance().targetConnection.getMacAddress());
+        tv_title.setText(Client.getInstance().getConnTarget().getMacAddress());
     }
 
     private void setListener(){
@@ -123,16 +124,14 @@ public class ConnectedActivity extends Activity {
     }
 
     private void initComponent(){
+        client = Client.getInstance();
         files = new ArrayList<>();
         filesAdapter = new FilesAdapter(files,this);
         lv_showfiles.setAdapter(filesAdapter);
     }
 
     private void setRequestHandler(){
-//        RequestClient.getDefault().setChannel(Client.getInstance().ch);
-        RequestClient.getDefault().setAddrManager(ClientAddrManager.getInstance());
-        RequestClient.getDefault().setTargetConnection(Client.getInstance().connectedMaps.get(0).getConnections().get(1));
-        RequestClient.getDefault().setConnectType(connectType);
+        RequestClient.getDefault().setClient(client);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)

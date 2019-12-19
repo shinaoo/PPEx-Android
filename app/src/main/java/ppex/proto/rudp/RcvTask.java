@@ -1,13 +1,13 @@
 package ppex.proto.rudp;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.Timeout;
+import ppex.proto.msg.Message;
+import ppex.proto.tpool.ITask;
+
 import java.util.Queue;
 
-import io.netty.buffer.ByteBuf;
-import ppex.proto.msg.Message;
-import ppex.utils.tpool.ITask;
-
 public class RcvTask implements ITask {
-
 
     private RudpPack rudpkg;
 
@@ -16,8 +16,6 @@ public class RcvTask implements ITask {
         rcvTask.rudpkg = rudpkg;
         return rcvTask;
     }
-
-    int count = 0;
 
     @Override
     public void execute() {
@@ -42,7 +40,7 @@ public class RcvTask implements ITask {
                     break;
                 if (rudpkg.getListener() == null)
                     break;
-                rudpkg.getListener().onResponse(rudpkg.getCtx(), rudpkg, msg);
+                rudpkg.getListener().onResponse(rudpkg, msg);
             }
             if (!rudpkg.getQueue_snd().isEmpty() && rudpkg.canSend(false)) {
                 rudpkg.notifySendEvent();
@@ -57,5 +55,15 @@ public class RcvTask implements ITask {
 
     private void release() {
         rudpkg = null;
+    }
+
+    @Override
+    public void run(Timeout timeout) throws Exception {
+        execute();
+    }
+
+    @Override
+    public void run() {
+        execute();
     }
 }

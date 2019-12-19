@@ -11,7 +11,7 @@ public class PongTypeMsgHandler implements TypeMessageHandler {
 
 
     @Override
-    public void handleTypeMessage(ChannelHandlerContext ctx, RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
+    public void handleTypeMessage(RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
 
     }
 }

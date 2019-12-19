@@ -34,6 +34,10 @@ public class BusEvent {
         }
     }
 
+    public BusEvent(int type){
+        this.type = type;
+    }
+
     public BusEvent(int type, Object data) {
         this.type = type;
         this.data = data;

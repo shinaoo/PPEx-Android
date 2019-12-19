@@ -1,46 +1,37 @@
 package ppex.proto.rudp;
 
-import android.util.Log;
-
-import org.jctools.queues.MpscArrayQueue;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import ppex.proto.msg.Message;
+import ppex.proto.tpool.IThreadExecute;
 
 import java.util.Queue;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import ppex.proto.msg.Message;
-import ppex.proto.msg.entity.Connection;
-import ppex.utils.tpool.IMessageExecutor;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RudpPack {
 
-    private final MpscArrayQueue<Message> queue_snd;
-    private final Queue<ByteBuf> queue_rcv;
+    private final ConcurrentLinkedQueue<Message> queue_snd;
+    private final ConcurrentLinkedQueue<ByteBuf> queue_rcv;
 
     private Rudp rudp;
-    private Output output;
-    private Connection connection;
-    private IMessageExecutor iMessageExecutor;
+    private IOutput output;
+    private IThreadExecute executor;
     private ResponseListener listener;
-    private ChannelHandlerContext ctx;
 
     private boolean isActive = true;
-    private long lasRcvTime = System.currentTimeMillis(),timeout = 30 * 1000;
+    private long lasRcvTime = System.currentTimeMillis(), timeout = 30 * 1000;
 
-    public RudpPack(Output output, Connection connection, IMessageExecutor iMessageExecutor,ResponseListener listener,ChannelHandlerContext ctx) {
+    public RudpPack(IOutput output, IThreadExecute executor, ResponseListener listener) {
         this.output = output;
-        this.connection = connection;
-        this.iMessageExecutor = iMessageExecutor;
-        this.queue_snd = new MpscArrayQueue<>(2 << 11);
-        this.queue_rcv = new MpscArrayQueue<>(2 << 11);
-        this.rudp = new Rudp(output, connection);
+        this.executor = executor;
+        this.queue_snd = new ConcurrentLinkedQueue<>();
+        this.queue_rcv = new ConcurrentLinkedQueue<>();
+        this.rudp = new Rudp(output);
         this.listener = listener;
-        this.ctx = ctx;
     }
 
-    public boolean write(Message msg){
-        if (!queue_snd.offer(msg)){
-            Log.e("MyTag","rudppkg queue snd is full");
+    public boolean write(Message msg) {
+        if (!queue_snd.offer(msg)) {
             return false;
         }
         notifySendEvent();
@@ -57,43 +48,52 @@ public class RudpPack {
 
     }
 
-    public void read(ByteBuf buf){
-        this.queue_rcv.add(buf.readSlice(buf.readableBytes()));
+    public void read(ByteBuf buf) {
+        ByteBuf buf1 = PooledByteBufAllocator.DEFAULT.buffer(buf.readableBytes());
+        buf1.writeBytes(buf);
+        this.queue_rcv.add(buf1);
         notifyRcvEvent();
     }
 
-    public void sendReset(){
-        rudp.sendReset();
+    /**
+     * 该方法是Client端使用,Server不用
+     */
+//    public void sendReset() {
+//        rudp.sendReset();
+//    }
+
+    public void sendFinish(){
+        rudp.sendFinish();
     }
 
     public void notifySendEvent() {
         SndTask task = SndTask.New(this);
-        this.iMessageExecutor.execute(task);
+        this.executor.execute(task);
     }
 
-    public void notifyRcvEvent(){
+    public void notifyRcvEvent() {
         RcvTask task = RcvTask.New(this);
-        this.iMessageExecutor.execute(task);
+        this.executor.execute(task);
     }
 
     //暂时返回true
     public boolean canSend(boolean current) {
         int max = rudp.getWndSnd() * 2;
         int waitsnd = rudp.waitSnd();
-        if (current){
+        if (current) {
             return waitsnd < max;
-        }else{
-            int threshold = Math.max(1,max/2);
+        } else {
+            int threshold = Math.max(1, max / 2);
             return waitsnd < threshold;
         }
     }
 
-    public MpscArrayQueue<Message> getQueue_snd() {
-        return queue_snd;
-    }
 
-    public long flush(long current) {
-        return rudp.flush(false, current);
+    public long flush(long current,boolean ackonly) {
+        //暂时用ackonly为true来表示是ScheduleTask调用flush.false为SndTask.
+        return rudp.flush(ackonly,current);
+//        return rudp.flush(false, current);
+
     }
 
     public Queue<ByteBuf> getQueue_rcv() {
@@ -104,7 +104,7 @@ public class RudpPack {
         return rudp.getInterval();
     }
 
-    public boolean canRcv(){
+    public boolean canRcv() {
         return rudp.canRcv();
     }
 
@@ -112,16 +112,20 @@ public class RudpPack {
         return listener;
     }
 
-    public Message mergeRcv(){
+    public Message mergeRcv() {
         return rudp.mergeRcvData();
     }
 
-    public void close(){
+    public void close() {
         this.isActive = false;
     }
 
     public boolean isActive() {
         return isActive;
+    }
+
+    public boolean isStop(){
+        return rudp.isStop();
     }
 
     public long getLasRcvTime() {
@@ -132,31 +136,26 @@ public class RudpPack {
         return timeout;
     }
 
-    public Connection getConnection(){
-        return rudp.getConnection();
-    }
-
-    public void release(){
+    public void release() {
         rudp.release();
-//        queue_rcv.forEach(buf-> buf.release());
-        for (int i = 0;i < queue_rcv.size();i++){
-            ByteBuf buf = queue_rcv.poll();
-            buf.release();
-        }
+        queue_rcv.forEach(buf -> buf.release());
     }
 
-    public ChannelHandlerContext getCtx() {
-        return ctx;
+    public ConcurrentLinkedQueue<Message> getQueue_snd() {
+        return queue_snd;
     }
 
-    public void setCtx(ChannelHandlerContext ctx) {
-        this.ctx = ctx;
+
+    public IOutput getOutput() {
+        return output;
     }
 
-    public void printRcvShambleAndOrderNum(){
-//        LOGGER.info("Rudppack shamble:" + rudp.getQueue_rcv_shambles().size() +  " order:" + rudp.getQueue_rcv_order().size());
-//        if (rudp.getQueue_rcv_shambles().size() > 0){
-//            rudp.getQueue_rcv_shambles().forEach(frg -> LOGGER.info("frg:" + frg.msgid + " sn:" + frg.sn + " tot:" + frg.tot));
-//        }
+    public Rudp getRudp() {
+        return rudp;
     }
+
+    public static RudpPack newInstance(IOutput output, IThreadExecute executor, ResponseListener responseListener) {
+        return new RudpPack(output, executor, responseListener);
+    }
+
 }
