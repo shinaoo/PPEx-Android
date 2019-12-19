@@ -101,7 +101,7 @@ public class Client {
         clientHandler = new ClientHandler(this);
         responseListener = new MsgResponse(addrManager);
 
-        connLocal = new Connection(name, addrLocal, name, NatTypeUtil.NatType.UNKNOWN.getValue());
+        connLocal = new Connection(addrMac, addrLocal, name, NatTypeUtil.NatType.UNKNOWN.getValue());
     }
 
     private void startBootstrap() throws Exception {

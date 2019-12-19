@@ -47,10 +47,6 @@ public class MainActivity extends AppCompatActivity {
         setEventListener();
         initComponent();
         initClient();
-
-        tv_showlocalmac.setText(Client.getInstance().getConnLocal().getMacAddress());
-        tv_showlocalip.setText(Client.getInstance().getAddrLocal().toString());
-        tv_showlocalpeername.setText(Client.getInstance().getConnLocal().getPeerName());
     }
 
     @Override
@@ -134,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     client.start();
                     DetectProcess.getInstance();
                     ThroughProcess.getInstance();
+                    EventBus.getDefault().post(new BusEvent(BusEvent.Type.CLIENT_INIT_END.getValue()));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -159,6 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case TXT_RESPONSE:
                 tv_showrcvcontent.setText((String) event.getData());
+                break;
+            case CLIENT_INIT_END:
+                tv_showlocalmac.setText(Client.getInstance().getConnLocal().getMacAddress());
+                tv_showlocalip.setText(Client.getInstance().getAddrLocal().toString());
+                tv_showlocalpeername.setText(Client.getInstance().getConnLocal().getPeerName());
                 break;
         }
     }

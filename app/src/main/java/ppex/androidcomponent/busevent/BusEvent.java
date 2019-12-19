@@ -5,16 +5,17 @@ public class BusEvent {
     private Object data;
 
     public enum Type{
-        DETECT_END_OF(0),
-        THROUGH_GET_INFO(1),
-        THROUGN_CONNECT_END(2),
+        CLIENT_INIT_END(0),
+        DETECT_END_OF(1),
+        THROUGH_GET_INFO(2),
+        THROUGN_CONNECT_END(3),
 
 
         //暂时设置一些测试
-        FILE_GETFILES(3),
+        FILE_GETFILES(4),
 
         //文字
-        TXT_RESPONSE(4),
+        TXT_RESPONSE(5),
         ;
         private int value;
         Type(int value){

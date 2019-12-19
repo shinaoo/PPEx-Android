@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 public class Connection {
 
 
-    private String macAddress;                              //使用mac地址来识别每个Connection
+    private String macAddress="";                              //使用mac地址来识别每个Connection
     private String peerName;
     private InetSocketAddress address;
     private int natType;
