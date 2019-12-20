@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Connection> connections = new ArrayList<>();
 
     private Client client;
+    private Object detectResult = new Object();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +159,34 @@ public class MainActivity extends AppCompatActivity {
                 tv_showlocalmac.setText(Client.getInstance().getConnLocal().getMacAddress());
                 tv_showlocalip.setText(Client.getInstance().getAddrLocal().toString());
                 tv_showlocalpeername.setText(Client.getInstance().getConnLocal().getPeerName());
+                break;
+            case DETECT_ONE_FROM_SERVER1:
+                if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1() != null) {
+                    if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1().equals(DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1())) {
+                        DetectProcess.getInstance().setNAT_ADDRESS_SAME(true);
+                    } else {
+                        DetectProcess.getInstance().setNAT_ADDRESS_SAME(false);
+                    }
+                }
+                break;
+            case DETECT_TWO_FROM_SERVER2P1:
+                if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1() != null) {
+                    if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1().equals(DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1())) {
+                        DetectProcess.getInstance().setNAT_ADDRESS_SAME(true);
+                    } else {
+                        DetectProcess.getInstance().setNAT_ADDRESS_SAME(false);
+                    }
+                }
+                break;
+            case DETECT_ONE_FROM_SERVER2P2:
+                synchronized (detectResult){
+                    tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
+                }
+                break;
+            case DETECT_TWO_FROM_SERVER2P2:
+                synchronized (detectResult){
+                    tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
+                }
                 break;
         }
     }

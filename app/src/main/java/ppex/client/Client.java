@@ -132,7 +132,8 @@ public class Client {
         bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
             @Override
             protected void initChannel(NioDatagramChannel ch) throws Exception {
-                ch.pipeline().addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));       //如果不加心跳保持连接,当Server端关闭后,Channel就inactive
+                //如果不加心跳保持连接,当Server端关闭后,Channel就inactive.后面应该要添加Channel如果inactive后重启的机制.保持Channel在线
+                ch.pipeline().addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));
                 ch.pipeline().addLast(clientHandler);
             }
         });

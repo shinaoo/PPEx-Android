@@ -4,6 +4,9 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.log4j.Logger;
+import org.greenrobot.eventbus.EventBus;
+
+import ppex.androidcomponent.busevent.BusEvent;
 import ppex.client.Client;
 import ppex.client.process.DetectProcess;
 import ppex.proto.msg.type.ProbeTypeMsg;
@@ -40,7 +43,7 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
     }
 
     //client端处理消息
-    private void handleClientFromServer1Msg(ProbeTypeMsg msg) {
+    private synchronized void handleClientFromServer1Msg(ProbeTypeMsg msg) {
         Log.e("MyTag","client handle server1 msg:" + msg.toString());
         if (msg.getStep() == ProbeTypeMsg.Step.ONE.ordinal()) {
             if (msg.getFromInetSocketAddress().getHostString().equals(Client.getInstance().getAddrLocal()) && msg.getFromInetSocketAddress().getPort() == Client.getInstance().getPORT_1()) {
@@ -49,16 +52,8 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
             } else {
                 DetectProcess.getInstance().setNAT_ADDRESS_FROM_S1(msg.getRecordInetSocketAddress());
                 Client.getInstance().setAddrLocal(msg.getRecordInetSocketAddress());
+                EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_ONE_FROM_SERVER1.getValue()));
             }
-            //todo 2019.11.08与第二阶段的返回的信息相比较。这里需要做一个顺序先后。与handleClientFromS2P1Msg做比较
-            //todo 2019.12.16上面的这个信息比较做的不对.后面等待时间后再统一做比较
-//            if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1() != null) {
-//                if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1().equals(DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1())) {
-//                    DetectProcess.getInstance().setNAT_ADDRESS_SAME(true);
-//                } else {
-//                    DetectProcess.getInstance().setNAT_ADDRESS_SAME(false);
-//                }
-//            }
         }
     }
 
@@ -67,6 +62,7 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
         if (msg.getStep() == ProbeTypeMsg.Step.ONE.ordinal()) {
         } else if (msg.getStep() == ProbeTypeMsg.Step.TWO.ordinal()) {
             DetectProcess.getInstance().setNAT_ADDRESS_FROM_S2P1(msg.getRecordInetSocketAddress());
+            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_TWO_FROM_SERVER2P1.getValue()));
         }
     }
 
@@ -74,8 +70,10 @@ public class ProbeTypeMsgHandler implements TypeMessageHandler {
         Log.e("MyTag","client handler server2p2 msg:" + msg.toString());
         if (msg.getStep() == ProbeTypeMsg.Step.ONE.ordinal()) {
             DetectProcess.getInstance().setOne_from_server2p2(true);
+            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_ONE_FROM_SERVER2P2.getValue()));
         } else if (msg.getStep() == ProbeTypeMsg.Step.TWO.ordinal()) {
             DetectProcess.getInstance().setTwo_from_server2p2(true);
+            EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_TWO_FROM_SERVER2P2.getValue()));
         }
     }
 
