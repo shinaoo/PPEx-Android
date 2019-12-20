@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         });
         btn_sendinfo.setOnClickListener(v -> ThroughProcess.getInstance().sendSaveInfo());
         btn_getallpeers.setOnClickListener(v -> ThroughProcess.getInstance().getConnectionsFromServer());
-        lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> ThroughProcess.getInstance().connectPeer(connections.get(position), Client.getInstance().getAddrManager()));
+        lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> ThroughProcess.getInstance().connectPeer(connections.get(position), client.getAddrManager()));
         btn_test.setOnClickListener(view -> {
 //            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
 //            txtTypeMsg.setReq(true);

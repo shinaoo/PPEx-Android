@@ -1,5 +1,7 @@
 package ppex.client.process;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
 
 import io.netty.channel.Channel;
@@ -134,18 +136,18 @@ public class ThroughProcess {
                 rudpPack = addrManager.get(client.getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else if (connType == Connect.TYPE.HOLE_PUNCH) {
-                connect.setType(connType.ordinal());
+                connect.setType(Connect.TYPE.HOLE_PUNCH.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //先将消息发给服务，由服务转发给target connection打洞
                 rudpPack = addrManager.get(client.getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
-
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 rudpPack = addrManager.get(client.getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
+                Log.e("MyTag","SND hole_punch msg");
             } else if (connType == Connect.TYPE.REVERSE) {
                 //首先向B 打洞
                 connect.setType(Connect.TYPE.CONNECT_PING_REVERSE.ordinal());

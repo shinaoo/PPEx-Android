@@ -58,7 +58,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         Log.e("MyTag","rcv from :" + packet.sender());
         RudpPack rudpPack = client.getAddrManager().get(packet.sender());
         if (rudpPack != null) {
-            client.getOutputManager().get(packet.sender()).update(channelHandlerContext.channel());
+            rudpPack.getOutput().update(channelHandlerContext.channel());
+//            client.getOutputManager().get(packet.sender()).update(channelHandlerContext.channel());
             rudpPack.read(packet.content());
             return;
         }

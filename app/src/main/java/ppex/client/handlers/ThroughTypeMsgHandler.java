@@ -37,6 +37,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
     @Override
     public void handleTypeMessage(RudpPack rudpPack, IAddrManager addrManager, TypeMessage tmsg) {
         ThroughTypeMsg ttmsg = JSON.parseObject(tmsg.getBody(), ThroughTypeMsg.class);
+        Log.e("MyTag","client handle through msg:" + ttmsg.getContent());
         if (ttmsg.getAction() == ThroughTypeMsg.ACTION.RECV_INFO.ordinal()) {
             RecvInfo recvinfo = JSON.parseObject(ttmsg.getContent(), RecvInfo.class);
             if (recvinfo.type == ThroughTypeMsg.RECVTYPE.SAVE_CONNINFO.ordinal()) {
