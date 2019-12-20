@@ -138,17 +138,13 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void handleMainThreadEvent(BusEvent event) {
         switch (BusEvent.Type.getByValue(event.getType())) {
-            case DETECT_END_OF:
-                Log.e("MyTag", "Detect end");
-                tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
-                break;
-            case THROUGH_GET_INFO:
+            case THROUGN_GET_CONN_INFO:
                 List<Connection> conns = (List<Connection>) event.getData();
                 connections = conns;
                 connectionAdapter.setConnectios(connections);
                 connectionAdapter.notifyDataSetChanged();
                 break;
-            case THROUGN_CONNECT_END:
+            case THROUGH_END:
 //                Log.e(TAG, "穿越结束,已经连接数：" + Client.getInstance().connectedMaps.size());
                 startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
                 break;
@@ -187,6 +183,9 @@ public class MainActivity extends AppCompatActivity {
                 synchronized (detectResult){
                     tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
                 }
+                break;
+            case THROUGN_RCV_CONNECT_PONG:
+                startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
                 break;
         }
     }

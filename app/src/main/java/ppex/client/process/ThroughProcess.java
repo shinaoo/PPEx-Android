@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 
 import io.netty.channel.Channel;
 import ppex.client.Client;
+import ppex.client.R;
 import ppex.client.rudp.ClientOutput;
 import ppex.proto.entity.Connection;
 import ppex.proto.entity.through.Connect;
@@ -91,9 +92,12 @@ public class ThroughProcess {
         try {
             ThroughTypeMsg throughTypeMsg = new ThroughTypeMsg();
             throughTypeMsg.setAction(ThroughTypeMsg.ACTION.CONNECT_CONN.ordinal());
+            //根据两者Connection类型,判断连接类型
             Connect.TYPE connType = NatTypeUtil.getConnectTypeByNatType(client.getConnLocal(), to);
+
             client.setConnTarget(to);
             client.setConnType2Target(connType);
+
             Connect connect = new Connect();
 
             List<Connection> connections = new ArrayList<>();
@@ -105,7 +109,7 @@ public class ThroughProcess {
             RudpPack rudpPack;
 
             if (connType == Connect.TYPE.DIRECT) {
-                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                connect.setType(Connect.TYPE.CONNECT_PING_NORMAL.ordinal());
                 connect.setContent("");
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //等待返回pong就确认建立连接
@@ -115,9 +119,12 @@ public class ThroughProcess {
                     client.getOutputManager().put(to.getAddress(), output);
                     rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener());
                     client.getAddrManager().New(to.getAddress(), rudpPack);
+                    rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
+                    RudpScheduleTask rudpScheduleTask = new RudpScheduleTask(client.getExecutor(), rudpPack, addrManager);
+                    client.getExecutor().executeTimerTask(rudpScheduleTask, rudpPack.getInterval());
+                } else {
+                    rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
                 }
-
-                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 //发送给Server端，表明正在建立连接
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
@@ -134,26 +141,33 @@ public class ThroughProcess {
                 rudpPack = addrManager.get(client.getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
+
                 connect.setType(Connect.TYPE.CONNECTING.ordinal());
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
-
                 rudpPack = addrManager.get(client.getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
             } else if (connType == Connect.TYPE.REVERSE) {
                 //首先向B 打洞
-                connect.setType(Connect.TYPE.CONNECT_PING.ordinal());
+                connect.setType(Connect.TYPE.CONNECT_PING_REVERSE.ordinal());
                 connect.setContent(connectionsStr);
                 throughTypeMsg.setContent(JSON.toJSONString(connect));
                 //率先打洞
                 rudpPack = addrManager.get(to.getAddress());
                 if (rudpPack == null) {
                     IOutput output = new ClientOutput(client.getChannel(), to);
-                    client.getOutputManager().put(to.getAddress(), output);
                     rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener());
-                    client.getAddrManager().New(to.getAddress(), rudpPack);
+                    addrManager.New(to.getAddress(), rudpPack);
+                    for (int i = 0; i < 5; i++) {
+                        rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
+                    }
+                    RudpScheduleTask rudpScheduleTask = new RudpScheduleTask(client.getExecutor(), rudpPack, addrManager);
+                    client.getExecutor().executeTimerTask(rudpScheduleTask, rudpPack.getInterval());
+                } else {
+                    for (int i = 0; i < 5; i++) {
+                        rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
+                    }
                 }
 
-                rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
 
                 //让server给B转发，由B 再通信
                 connect.setType(connType.ordinal());

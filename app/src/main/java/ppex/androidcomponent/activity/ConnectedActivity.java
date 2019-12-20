@@ -29,7 +29,6 @@ import ppex.androidcomponent.busevent.BusEvent;
 import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.Client;
 import ppex.client.R;
-import ppex.client.rudp.ClientAddrManager;
 import ppex.proto.entity.testpack.Files;
 
 public class ConnectedActivity extends Activity {
