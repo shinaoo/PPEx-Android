@@ -91,18 +91,9 @@ public class MainActivity extends AppCompatActivity {
 //            Client.getInstance().localConnection = connection;
 //            tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
-        btn_sendinfo.setOnClickListener(v -> {
-            ThroughProcess.getInstance().sendSaveInfo();
-        });
-        btn_getallpeers.setOnClickListener(v -> {
-            ThroughProcess.getInstance().getConnectionsFromServer();
-        });
-
-        lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> {
-            ThroughProcess.getInstance().connectPeer(connections.get(position), Client.getInstance().getAddrManager());
-//            Client.getInstance().targetConnection = connections.get(position);
-//            startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
-        });
+        btn_sendinfo.setOnClickListener(v -> ThroughProcess.getInstance().sendSaveInfo());
+        btn_getallpeers.setOnClickListener(v -> ThroughProcess.getInstance().getConnectionsFromServer());
+        lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> ThroughProcess.getInstance().connectPeer(connections.get(position), Client.getInstance().getAddrManager()));
         btn_test.setOnClickListener(view -> {
 //            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
 //            txtTypeMsg.setReq(true);
@@ -158,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case DETECT_ONE_FROM_SERVER1:
                 if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1() != null) {
+                    client.getConnLocal().setAddress(DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1());
                     if (DetectProcess.getInstance().getNAT_ADDRESS_FROM_S1().equals(DetectProcess.getInstance().getNAT_ADDRESS_FROM_S2P1())) {
                         DetectProcess.getInstance().setNAT_ADDRESS_SAME(true);
                     } else {
@@ -175,12 +167,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case DETECT_ONE_FROM_SERVER2P2:
-                synchronized (detectResult){
-                    tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
-                }
-                break;
             case DETECT_TWO_FROM_SERVER2P2:
                 synchronized (detectResult){
+                    int nattype = DetectProcess.getInstance().getClientNATType().getValue();
+                    client.getConnLocal().setNatType(nattype);
                     tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
                 }
                 break;
