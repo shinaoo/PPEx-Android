@@ -9,6 +9,7 @@ import android.util.Log;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
@@ -18,6 +19,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 
+import io.netty.handler.timeout.IdleStateHandler;
 import ppex.client.rudp.ClientAddrManager;
 import ppex.client.rudp.ClientOutput;
 import ppex.client.rudp.ClientOutputManager;
@@ -33,10 +35,11 @@ import ppex.utils.NatTypeUtil;
 
 import java.net.*;
 import java.util.Enumeration;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
 
-//    private String HOST_SERVER1 = "119.139.198.211";
+    //    private String HOST_SERVER1 = "119.139.198.211";
 //    private String HOST_SERVER2 = "61.141.64.171";
     private String HOST_SERVER1 = "192.168.1.100";
     private String HOST_SERVER2 = "192.168.1.102";
@@ -72,18 +75,22 @@ public class Client {
 
 
     private static Client instance = null;
-    public static Client getInstance(){
-        if (instance == null){
+
+    public static Client getInstance() {
+        if (instance == null) {
             instance = new Client();
         }
         return instance;
     }
-    private Client(){}
+
+    private Client() {
+    }
 
     public void start() throws Exception {
         initParam();
         startBootstrap();
         initRudp();
+        //android 中这个shutdownhook不执行
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
     }
 
@@ -93,7 +100,7 @@ public class Client {
 //        addrMac = getMacAddress();
 //        addrLocal = getLocalIpAddr();
         addrMac = getLocalMacAddressFromIp();
-        addrLocal = new InetSocketAddress(getLocalHostIp(),PORT_3);
+        addrLocal = new InetSocketAddress(getLocalHostIp(), PORT_3);
 
         addrServer1 = new InetSocketAddress(HOST_SERVER1, PORT_1);
         addrServer2p1 = new InetSocketAddress(HOST_SERVER2, PORT_1);
@@ -109,7 +116,7 @@ public class Client {
         connLocal = new Connection(addrMac, addrLocal, name, NatTypeUtil.NatType.UNKNOWN.getValue());
     }
 
-    private void startBootstrap() throws Exception {
+    private void startBootstrap() {
 
         int cpunum = Runtime.getRuntime().availableProcessors();
         bootstrap = new Bootstrap();
@@ -120,11 +127,20 @@ public class Client {
         eventLoopGroup = epoll ? new EpollEventLoopGroup(cpunum) : new NioEventLoopGroup(cpunum);
         Class<? extends Channel> chnCls = epoll ? EpollDatagramChannel.class : NioDatagramChannel.class;
         bootstrap.channel(chnCls).group(eventLoopGroup);
-        bootstrap.option(ChannelOption.SO_BROADCAST,true).option(ChannelOption.SO_REUSEADDR,true)
-                .option(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN,Rudp.MTU_DEFUALT,Rudp.MTU_DEFUALT));
-
-        bootstrap.handler(clientHandler);
-        channel = bootstrap.bind(PORT_3).sync().channel();
+        bootstrap.option(ChannelOption.SO_BROADCAST, true).option(ChannelOption.SO_REUSEADDR, true)
+                .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN, Rudp.MTU_DEFUALT, Rudp.MTU_DEFUALT));
+        bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
+            @Override
+            protected void initChannel(NioDatagramChannel ch) throws Exception {
+                ch.pipeline().addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));       //如果不加心跳保持连接,当Server端关闭后,Channel就inactive
+                ch.pipeline().addLast(clientHandler);
+            }
+        });
+        try {
+            channel = bootstrap.bind(PORT_3).sync().channel();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void initRudp() {
@@ -143,24 +159,26 @@ public class Client {
         RudpScheduleTask task = new RudpScheduleTask(executor, rudpPack, addrManager);
         executor.executeTimerTask(task, rudpPack.getInterval());
 
-        connServer2p1 = new Connection("Server2P1",addrServer2p1,"Server2P1", NatTypeUtil.NatType.UNKNOWN.getValue());
-        IOutput outputServer2P1 = new ClientOutput(channel,connServer2p1);
-        outputManager.put(addrServer2p1,outputServer2P1);
+        connServer2p1 = new Connection("Server2P1", addrServer2p1, "Server2P1", NatTypeUtil.NatType.UNKNOWN.getValue());
+        IOutput outputServer2P1 = new ClientOutput(channel, connServer2p1);
+        outputManager.put(addrServer2p1, outputServer2P1);
         RudpPack rudpPack2 = addrManager.get(addrServer2p1);
-        if (rudpPack2 == null){
-            rudpPack2 = new RudpPack(outputServer2P1,executor,responseListener);
-            addrManager.New(addrServer2p1,rudpPack2);
+        if (rudpPack2 == null) {
+            rudpPack2 = new RudpPack(outputServer2P1, executor, responseListener);
+            addrManager.New(addrServer2p1, rudpPack2);
 //            rudpPack2.sendReset();
         }
 
-        RudpScheduleTask task2 = new RudpScheduleTask(executor,rudpPack2,addrManager);
-        executor.executeTimerTask(task2,rudpPack2.getInterval());
+        RudpScheduleTask task2 = new RudpScheduleTask(executor, rudpPack2, addrManager);
+        executor.executeTimerTask(task2, rudpPack2.getInterval());
 
     }
 
-    private void stop() {
-        Log.e("MyTag","hook thread run stop");
+    public void stop() {
         addrManager.getAll().forEach(rudpPack -> rudpPack.sendFinish());
+        if (channel != null){
+            channel.close();
+        }
         if (executor != null) {
             executor.stop();
         }
@@ -169,10 +187,10 @@ public class Client {
         }
     }
 
-    private InetSocketAddress getLocalIpAddr(){
+    private InetSocketAddress getLocalIpAddr() {
         try {
             InetAddress addr = InetAddress.getLocalHost();
-            return new InetSocketAddress(addr,PORT_3);
+            return new InetSocketAddress(addr, PORT_3);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -209,10 +227,10 @@ public class Client {
 
     //android获取本地IP和mac
     public String getLocalMacAddressFromIp() {
-        String mac_s= "";
+        String mac_s = "";
         try {
             byte[] mac;
-            NetworkInterface ne=NetworkInterface.getByInetAddress(InetAddress.getByName(getLocalHostIp()));
+            NetworkInterface ne = NetworkInterface.getByInetAddress(InetAddress.getByName(getLocalHostIp()));
             mac = ne.getHardwareAddress();
             mac_s = byte2hex(mac);
         } catch (Exception e) {
@@ -222,7 +240,7 @@ public class Client {
         return mac_s;
     }
 
-    public  String byte2hex(byte[] b) {
+    public String byte2hex(byte[] b) {
         StringBuffer hs = new StringBuffer(b.length);
         String stmp = "";
         int len = b.length;
@@ -240,10 +258,10 @@ public class Client {
     public String getLocalIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
-                    .getNetworkInterfaces(); en.hasMoreElements();) {
+                    .getNetworkInterfaces(); en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
                 for (Enumeration<InetAddress> enumIpAddr = intf
-                        .getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                        .getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
                     InetAddress inetAddress = enumIpAddr.nextElement();
                     if (!inetAddress.isLoopbackAddress()) {
                         return inetAddress.getHostAddress().toString();
@@ -257,33 +275,26 @@ public class Client {
         return null;
     }
 
-    public String getLocalHostIp()
-    {
+    public String getLocalHostIp() {
         String ipaddress = "";
-        try
-        {
+        try {
             Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces();
             // 遍历所用的网络接口
-            while (en.hasMoreElements())
-            {
+            while (en.hasMoreElements()) {
                 NetworkInterface nif = en.nextElement();// 得到每一个网络接口绑定的所有ip
                 Enumeration<InetAddress> inet = nif.getInetAddresses();
                 // 遍历每一个接口绑定的所有ip
-                while (inet.hasMoreElements())
-                {
+                while (inet.hasMoreElements()) {
                     InetAddress ip = inet.nextElement();
                     // 在这里如果不加isIPv4Address的判断,直接返回,在4.0上获取到的是类似于fe80::1826:66ff:fe23:48e%p2p0的ipv6的地址
-                    if (!ip.isLoopbackAddress() && ip instanceof Inet4Address)
-                    {
+                    if (!ip.isLoopbackAddress() && ip instanceof Inet4Address) {
                         return ipaddress = ip.getHostAddress();
                     }
                 }
 
             }
-        }
-        catch (SocketException e)
-        {
+        } catch (SocketException e) {
             Log.e("feige", "获取本地ip地址失败");
             e.printStackTrace();
         }
