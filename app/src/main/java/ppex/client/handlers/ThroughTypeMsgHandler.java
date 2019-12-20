@@ -105,6 +105,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                     }
                 }
 
+                Log.e("MyTag","------------->hole_punch SND connect ping normal");
                 connect.setType(Connect.TYPE.RETURN_HOLE_PUNCH.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
 
@@ -125,6 +126,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 } else {
                     rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
                 }
+                Log.e("MyTag","------------->return_hole_punch SND connect ping normal");
             } else if (connect.getType() == Connect.TYPE.REVERSE.ordinal()) {
                 connect.setType(Connect.TYPE.CONNECT_PING_REVERSE.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
@@ -139,13 +141,15 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 } else {
                     rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
                 }
+                Log.e("MyTag","------------->reverse SND connect ping reverse");
             } else if (connect.getType() == Connect.TYPE.FORWARD.ordinal()) {
                 connect.setType(Connect.TYPE.RETURN_FORWARD.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
                 rudpPack = addrManager.get(Client.getInstance().getAddrServer1());
                 rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
                 //forward的接收方已经表示连接了
-                EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_RCV_CONNECT_PONG.getValue()));
+//                EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_RCV_CONNECT_PONG.getValue()));
+                Log.e("MyTag","------------->forward");
             } else if (connect.getType() == Connect.TYPE.RETURN_FORWARD.ordinal()) {
                 connect.setType(Connect.TYPE.CONNECTED.ordinal());
                 ttmsg.setContent(JSON.toJSONString(connect));
@@ -157,7 +161,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 Client.getInstance().setConnType2Target(Connect.TYPE.FORWARD);
                 //表示已经连接上了forward
                 EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_RCV_CONNECT_PONG.getValue()));
-
+                Log.e("MyTag","------------->return forward");
             }
         }
     }
@@ -183,6 +187,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
 
             }
+            Log.e("MyTag","----------->rcv connectping normal return connect pong");
             //todo 之前有一个ConnectedMap保存已经连接上的连接.现在去掉了,之后再考虑如何
 //            if (Client.getInstance().isConnecting(Client.getInstance().connectingMaps,connect)){
 //                //还需要判断是不是REVERSE类型
@@ -205,8 +210,8 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
                 Client.getInstance().getExecutor().executeTimerTask(rudpScheduleTask, rudpPack.getInterval());
             } else {
                 rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
-
             }
+            Log.e("MyTag","----------->rcv connectping reverse return connect pong");
         } else if (connect.getType() == Connect.TYPE.CONNECT_PONG.ordinal()) {
             //todo 收到pong,表示已经建立连接.后面考虑如何保存这个连接
             //收到pong,判断Client是否有该连接存在。这个用来判断HOLE_PUNCH和DIRECT类型是否已经连接成功
@@ -215,7 +220,7 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
 //                //todo 可以增加心跳
 //                Client.getInstance().connectedMaps.add(Client.getInstance().connectingMaps.remove(0));
 //            }
-
+            Log.e("MyTag","----------->rcv connect pong");
             EventBus.getDefault().post(new BusEvent(BusEvent.Type.THROUGN_RCV_CONNECT_PONG.getValue()));
 
             //给服务器发送建立连接成功的消息
