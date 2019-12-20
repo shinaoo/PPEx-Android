@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue()));
+//                EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue()));
             }).start();
 //            Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
 //            Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
@@ -121,18 +121,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void initClient() {
         client = Client.getInstance();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    client.start();
-                    DetectProcess.getInstance();
-                    ThroughProcess.getInstance();
-                    EventBus.getDefault().post(new BusEvent(BusEvent.Type.CLIENT_INIT_END.getValue()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        try {
+            client.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        new Thread(() -> {
+            DetectProcess.getInstance().setClient(client);
+            ThroughProcess.getInstance().setClient(client);
+            EventBus.getDefault().post(new BusEvent(BusEvent.Type.CLIENT_INIT_END.getValue()));
         }).start();
     }
 
@@ -140,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     public void handleMainThreadEvent(BusEvent event) {
         switch (BusEvent.Type.getByValue(event.getType())) {
             case DETECT_END_OF:
-                Log.e("MyTag","Detect end");
+                Log.e("MyTag", "Detect end");
                 tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
                 break;
             case THROUGH_GET_INFO:

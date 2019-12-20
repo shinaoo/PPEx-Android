@@ -16,6 +16,14 @@ public class BusEvent {
 
         //文字
         TXT_RESPONSE(5),
+
+        //探测阶段
+        DETECT_ONE_FROM_SERVER1(6),
+        DETECT_ONE_FROM_SERVER2P2(7),
+        DETECT_TWO_FROM_SERVER2P1(8),
+        DETECT_TWO_FROM_SERVER2P2(9),
+
+
         ;
         private int value;
         Type(int value){

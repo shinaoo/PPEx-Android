@@ -1,7 +1,11 @@
 package ppex.client.process;
 
 import ppex.client.Client;
+import ppex.client.rudp.ClientOutput;
+import ppex.proto.entity.Connection;
+import ppex.proto.rudp.IOutput;
 import ppex.proto.rudp.RudpPack;
+import ppex.proto.rudp.RudpScheduleTask;
 import ppex.utils.MessageUtil;
 import ppex.utils.NatTypeUtil;
 
@@ -22,13 +26,16 @@ public class DetectProcess {
     private Client client;
 
     private static DetectProcess instance = null;
-    public static DetectProcess getInstance(){
-        if (instance == null){
+
+    public static DetectProcess getInstance() {
+        if (instance == null) {
             instance = new DetectProcess();
         }
         return instance;
     }
-    private DetectProcess(){}
+
+    private DetectProcess() {
+    }
 
     public void setClient(Client client) {
         this.client = client;
@@ -61,23 +68,24 @@ public class DetectProcess {
         one_send2s1();
     }
 
-    public void send2S2P1()throws Exception {
+    public void send2S2P1() throws Exception {
         two_send2s2p1();
     }
-    public NatTypeUtil.NatType getClientNATType(){
+
+    public NatTypeUtil.NatType getClientNATType() {
         //开始判断NAT类型
-        if(isPublicNetwork){
+        if (isPublicNetwork) {
             return NatTypeUtil.NatType.PUBLIC_NETWORK;
         }
-        if (isOne_from_server2p2()){
+        if (isOne_from_server2p2()) {
             return NatTypeUtil.NatType.FULL_CONE_NAT;
         }
-        if (!NAT_ADDRESS_SAME){
+        if (!NAT_ADDRESS_SAME) {
             return NatTypeUtil.NatType.SYMMETIC_NAT;
-        }else{
-            if (isTwo_from_server2p2()){
+        } else {
+            if (isTwo_from_server2p2()) {
                 return NatTypeUtil.NatType.RESTRICT_CONE_NAT;
-            }else{
+            } else {
                 return NatTypeUtil.NatType.PORT_RESTRICT_CONE_NAT;
             }
         }
@@ -85,12 +93,33 @@ public class DetectProcess {
 
     public void one_send2s1() throws Exception {
         RudpPack rudpPack = client.getAddrManager().get(client.getAddrServer1());
-        rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+        if (rudpPack == null) {
+            Connection connection = new Connection("", client.getAddrServer1(), "Server1", NatTypeUtil.NatType.UNKNOWN.getValue());
+            IOutput outputServer1 = new ClientOutput(Client.getInstance().getChannel(), connection);
+            rudpPack = new RudpPack(outputServer1, client.getExecutor(), client.getResponseListener());
+            client.getAddrManager().New(client.getAddrServer1(), rudpPack);
+            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+            RudpScheduleTask task = new RudpScheduleTask(client.getExecutor(), rudpPack, client.getAddrManager());
+            client.getExecutor().executeTimerTask(task, rudpPack.getInterval());
+        }else{
+            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+        }
+
     }
 
     public void two_send2s2p1() throws Exception {
         RudpPack rudpPack = client.getAddrManager().get(client.getAddrServer2p1());
-        rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+        if (rudpPack == null) {
+            Connection connection = new Connection("", client.getAddrServer2p1(), "Server1", NatTypeUtil.NatType.UNKNOWN.getValue());
+            IOutput outputServer1 = new ClientOutput(Client.getInstance().getChannel(), connection);
+            rudpPack = new RudpPack(outputServer1, client.getExecutor(), client.getResponseListener());
+            client.getAddrManager().New(client.getAddrServer2p1(), rudpPack);
+            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+            RudpScheduleTask task = new RudpScheduleTask(client.getExecutor(), rudpPack, client.getAddrManager());
+            client.getExecutor().executeTimerTask(task, rudpPack.getInterval());
+        }else{
+            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+        }
     }
 
     public boolean isPublicNetwork() {
