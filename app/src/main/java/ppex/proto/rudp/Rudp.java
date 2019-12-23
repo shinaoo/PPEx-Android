@@ -423,6 +423,7 @@ public class Rudp {
         synchronized (lock_rcvshambles) {
             for (Iterator<Frg> itr = queue_rcv_shambles.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
+                Log.e("MyTag","arrangeRcvData sn:" + frg.sn + " rcv_nxt:" + rcv_nxt + " shame size:" + queue_rcv_shambles.size() + " rcvw:" + wnd_rcv);
                 if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv) {
                     itr.remove();
                     queue_rcv_order.add(frg);
@@ -433,6 +434,7 @@ public class Rudp {
                     break;
                 }
             }
+            Log.e("MyTag","arrangeRcvData rcv_order size:" + queue_rcv_order.size() + " rcv_shamble size:" + queue_rcv_shambles.size());
         }
     }
 
