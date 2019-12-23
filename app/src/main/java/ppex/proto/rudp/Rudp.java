@@ -1,13 +1,14 @@
 package ppex.proto.rudp;
 
-import io.netty.buffer.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ppex.proto.msg.Message;
-import ppex.proto.tpool.ThreadExecute;
 import ppex.utils.MessageUtil;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Rudp {
 
@@ -72,6 +73,8 @@ public class Rudp {
     private List<Frg> queue_rcv_order = new LinkedList<>();
     //收到无序的消息队列
     private List<Frg> queue_rcv_shambles = new LinkedList<>();
+
+    private Object lock_snd = new Object(), lock_sndack = new Object(), lock_rcvorder = new Object(), lock_rcvshambles = new Object();
 
     //开始的时间戳
     private long startTicks = System.currentTimeMillis();
@@ -155,7 +158,10 @@ public class Rudp {
         int wnd_count = Math.min(wnd_snd, wnd_rmt);                      //后面加入请求server端窗口数量来控制拥塞
         if (!queue_snd.isEmpty()) {
             while (itimediff(snd_nxt, snd_una + wnd_count) < 0 && !queue_snd.isEmpty()) {    //这里控制数量输入，即是窗口的数量控制好了
-                Frg frg = queue_snd.remove(0);
+                Frg frg = null;
+                synchronized (lock_snd) {
+                    frg = queue_snd.remove(0);
+                }
                 if (frg == null)
                     break;
                 frg.cmd = CMD_PUSH;
@@ -351,7 +357,7 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        synchronized (queue_sndack) {
+        synchronized (lock_sndack) {
             for (Iterator<Frg> itr = queue_sndack.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
                 if (sn == frg.sn) {
@@ -414,7 +420,7 @@ public class Rudp {
     }
 
     private void arrangeRcvData() {
-        synchronized (queue_rcv_shambles) {
+        synchronized (lock_rcvshambles) {
             for (Iterator<Frg> itr = queue_rcv_shambles.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
                 if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv) {
@@ -439,7 +445,7 @@ public class Rudp {
         if (len < 0)
             return null;
         ByteBuf buf = byteBufAllocator.buffer(len);
-        synchronized (queue_rcv_order) {
+        synchronized (lock_rcvorder) {
             for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
                 itr.remove();
@@ -471,14 +477,16 @@ public class Rudp {
         //用msgid保证是同一个msg的长度
         long msgid = queue_rcv_order.get(0).msgid;
         int len = 0;
-        for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
-            Frg f = itr.next();
-            if (msgid != f.msgid) {
-                continue;
+        synchronized (lock_rcvorder) {
+            for (Iterator<Frg> itr = queue_rcv_order.iterator(); itr.hasNext(); ) {
+                Frg f = itr.next();
+                if (msgid != f.msgid) {
+                    continue;
+                }
+                len += f.data.readableBytes();
+                if (f.tot == 0)
+                    break;
             }
-            len += f.data.readableBytes();
-            if (f.tot == 0)
-                break;
         }
         return len;
     }
