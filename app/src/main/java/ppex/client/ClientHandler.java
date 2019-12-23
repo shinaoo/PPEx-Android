@@ -2,6 +2,8 @@ package ppex.client;
 
 import android.util.Log;
 
+import java.net.InetSocketAddress;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -91,6 +93,11 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void handleWriteIdle(){
         PingTypeMsg pingTypeMsg = new PingTypeMsg();
-        this.client.getAddrManager().getAll().forEach(rudpPack -> rudpPack.write(MessageUtil.pingMsg2Msg(pingTypeMsg)));
+        for (RudpPack pack : this.client.getAddrManager().getAll()){
+            if (pack.getOutput().getConn().getAddress().equals(this.client.getAddrServer2p2()) || pack.getOutput().getConn().getAddress().equals(this.client.getAddrServer2p1())){
+                continue;
+            }
+            pack.write(MessageUtil.pingMsg2Msg(pingTypeMsg));
+        }
     }
 }

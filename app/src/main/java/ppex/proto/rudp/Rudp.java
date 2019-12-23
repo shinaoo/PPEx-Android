@@ -290,13 +290,6 @@ public class Rudp {
                         zeroSnTimeStamp = ts;
                         Log.e("MyTag","sn ==0 and zerotimestamp > 1000");
                     }
-                    if (sn != 0 && isNew) {
-                        snd_nxt = una;
-                        rcv_nxt = sn;
-                        snd_una = snd_nxt;
-                        isNew = false;
-                        Log.e("MyTag","sn != 0 and isNew is true");
-                    }
                     if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
                         flushAck(sn, ts, msgid);          //返回ack
                         Frg frg;
