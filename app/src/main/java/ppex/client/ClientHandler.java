@@ -31,6 +31,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        client.getAddrManager().getAll().forEach(rudppack -> rudppack.sendFinish());
         super.channelInactive(ctx);
         Log.e("MyTag","Channel inactive");
     }
@@ -55,7 +56,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket packet) throws Exception {
-        Log.e("MyTag","rcv from :" + packet.sender());
+//        Log.e("MyTag","rcv from :" + packet.sender());
         RudpPack rudpPack = client.getAddrManager().get(packet.sender());
         if (rudpPack != null) {
             rudpPack.getOutput().update(channelHandlerContext.channel());

@@ -1,5 +1,7 @@
 package ppex.proto.rudp;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ppex.proto.msg.Message;
@@ -221,6 +223,7 @@ public class Rudp {
 
     private void output(ByteBuf buf, long sn) {
         if (buf.readableBytes() > 0) {
+            Log.e("MyTag", "output to:" + this.output.getConn().getAddress() + " sn:" + sn + " sn_nxt:" + snd_nxt + " una:" + snd_una + " rcv_nxt:" + rcv_nxt);
             output.output(buf, this, sn);
             return;
         }
@@ -285,11 +288,14 @@ public class Rudp {
                     if (sn == 0 && itimediff(ts, zeroSnTimeStamp) > 1000) {
                         reset();
                         zeroSnTimeStamp = ts;
+                        Log.e("MyTag","sn ==0 and zerotimestamp > 1000");
                     }
                     if (sn != 0 && isNew) {
                         snd_nxt = una;
                         rcv_nxt = sn;
                         snd_una = snd_nxt;
+                        isNew = false;
+                        Log.e("MyTag","sn != 0 and isNew is true");
                     }
                     if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
                         flushAck(sn, ts, msgid);          //返回ack
@@ -357,6 +363,7 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
+        Log.e("MyTag", "rcv ack from:" + this.output.getConn().getAddress() + " sn:" + sn);
         synchronized (lock_sndack) {
             for (Iterator<Frg> itr = queue_sndack.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
