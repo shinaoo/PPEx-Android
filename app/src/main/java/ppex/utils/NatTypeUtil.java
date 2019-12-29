@@ -51,7 +51,7 @@ public class NatTypeUtil {
         }
     }
 
-    public static Connect.TYPE getConnectTypeByNatType(Connection from,Connection to){
+    public static Connect.TYPE getConnectTypeByNatType(Connection from, Connection to){
         if (to.getNatType() == NatType.PUBLIC_NETWORK.getValue()){
             return Connect.TYPE.DIRECT;
         }else if (to.getNatType() == NatType.FULL_CONE_NAT.getValue() || to.getNatType() == NatType.RESTRICT_CONE_NAT.getValue()){

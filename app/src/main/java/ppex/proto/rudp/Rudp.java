@@ -1,9 +1,9 @@
 package ppex.proto.rudp;
 
-import android.util.Log;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ppex.proto.msg.Message;
 import ppex.utils.MessageUtil;
 
@@ -13,6 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Rudp {
+
+    private Logger LOGGER = LoggerFactory.getLogger(Rudp.class);
 
     public static final int NO_DEFINE_RTO = 30;
     public static final int RTO_MIN = 100;
@@ -223,7 +225,7 @@ public class Rudp {
 
     private void output(ByteBuf buf, long sn) {
         if (buf.readableBytes() > 0) {
-            Log.e("MyTag", "output to:" + this.output.getConn().getAddress() + " sn:" + sn + " sn_nxt:" + snd_nxt + " una:" + snd_una + " rcv_nxt:" + rcv_nxt);
+            LOGGER.info("output to:" + this.output.getConn().getAddress() + " sn:" + sn + " sn_nxt:" + snd_nxt + " una:" + snd_una + " rcv_nxt:" + rcv_nxt);
             output.output(buf, this, sn);
             return;
         }
@@ -288,7 +290,7 @@ public class Rudp {
                     if (sn == 0 && itimediff(ts, zeroSnTimeStamp) > 1000) {
                         reset();
                         zeroSnTimeStamp = ts;
-                        Log.e("MyTag","sn ==0 and zerotimestamp > 1000");
+                        LOGGER.info("sn ==0 and zerotimestamp > 1000");
                     }
                     if (itimediff(sn, rcv_nxt + wnd_rcv) < 0) {
                         flushAck(sn, ts, msgid);          //返回ack
@@ -356,7 +358,7 @@ public class Rudp {
         if (itimediff(sn, snd_una) < 0 || itimediff(sn, snd_nxt) >= 0) {
             return;
         }
-        Log.e("MyTag", "rcv ack from:" + this.output.getConn().getAddress() + " sn:" + sn);
+        LOGGER.info("affirm ack from:" + this.output.getConn().getAddress() + " sn:" + sn);
         synchronized (lock_sndack) {
             for (Iterator<Frg> itr = queue_sndack.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
@@ -423,7 +425,7 @@ public class Rudp {
         synchronized (lock_rcvshambles) {
             for (Iterator<Frg> itr = queue_rcv_shambles.iterator(); itr.hasNext(); ) {
                 Frg frg = itr.next();
-                Log.e("MyTag","arrangeRcvData sn:" + frg.sn + " rcv_nxt:" + rcv_nxt + " shame size:" + queue_rcv_shambles.size() + " rcvw:" + wnd_rcv);
+                LOGGER.info("address" + this.output.getConn().getAddress() + "arrangeRcvData sn:" + frg.sn + " rcv_nxt:" + rcv_nxt + " shame size:" + queue_rcv_shambles.size() + " order size:" + queue_rcv_order.size() + " rcvw:" + wnd_rcv);
                 if (frg.sn == rcv_nxt && queue_rcv_shambles.size() < wnd_rcv) {
                     itr.remove();
                     queue_rcv_order.add(frg);
@@ -434,7 +436,7 @@ public class Rudp {
                     break;
                 }
             }
-            Log.e("MyTag","arrangeRcvData rcv_order size:" + queue_rcv_order.size() + " rcv_shamble size:" + queue_rcv_shambles.size());
+            LOGGER.info("address:" + this.output.getConn().getAddress() + "rcv_nxt:" + rcv_nxt + " shambles size:" + queue_rcv_shambles.size() + " order size:" + queue_rcv_order.size());
         }
     }
 

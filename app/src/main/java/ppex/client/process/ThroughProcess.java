@@ -119,7 +119,7 @@ public class ThroughProcess {
                 if (rudpPack == null) {
                     IOutput output = new ClientOutput(client.getChannel(), to);
                     client.getOutputManager().put(to.getAddress(), output);
-                    rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener());
+                    rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener(),addrManager);
                     client.getAddrManager().New(to.getAddress(), rudpPack);
                     rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));
                     RudpScheduleTask rudpScheduleTask = new RudpScheduleTask(client.getExecutor(), rudpPack, addrManager);
@@ -157,7 +157,7 @@ public class ThroughProcess {
                 rudpPack = addrManager.get(to.getAddress());
                 if (rudpPack == null) {
                     IOutput output = new ClientOutput(client.getChannel(), to);
-                    rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener());
+                    rudpPack = RudpPack.newInstance(output, client.getExecutor(), client.getResponseListener(),addrManager);
                     addrManager.New(to.getAddress(), rudpPack);
                     for (int i = 0; i < 5; i++) {
                         rudpPack.write(MessageUtil.throughmsg2Msg(throughTypeMsg));

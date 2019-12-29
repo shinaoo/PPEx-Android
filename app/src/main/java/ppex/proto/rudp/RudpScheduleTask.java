@@ -1,7 +1,5 @@
 package ppex.proto.rudp;
 
-import android.util.Log;
-
 import io.netty.util.Timeout;
 import ppex.client.Client;
 import ppex.proto.tpool.ITask;
@@ -41,7 +39,6 @@ public class RudpScheduleTask implements ITask {
                 Client.getInstance().getOutputManager().del(rudpPack.getOutput().getConn().getAddress());
                 addrManager.Del(rudpPack);
                 rudpPack = null;
-                Log.e("MyTag","rudp is not active");
                 return;
             }
             if (rudpPack.isStop()){
@@ -56,7 +53,7 @@ public class RudpScheduleTask implements ITask {
             long next = rudpPack.flush(now,true);
             executor.executeTimerTask(this,next);
             if (!rudpPack.getQueue_snd().isEmpty() && rudpPack.canSend(false)){
-                rudpPack.notifySendEvent();
+                rudpPack.notifySendEvent("");
             }
         } catch (Exception e) {
             e.printStackTrace();

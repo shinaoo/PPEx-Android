@@ -1,22 +1,30 @@
 package ppex.proto.rudp;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ppex.proto.msg.Message;
+import ppex.proto.rudp2.Chunk;
+import ppex.proto.rudp2.Rudp2;
+import ppex.proto.rudp2.ScheduleTask;
 import ppex.proto.tpool.IThreadExecute;
 
-import java.util.Queue;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RudpPack {
 
-    private final ConcurrentLinkedQueue<Message> queue_snd;
-    private final ConcurrentLinkedQueue<ByteBuf> queue_rcv;
+    private final ConcurrentLinkedQueue<Message> sndQueue;
+    private final ConcurrentLinkedQueue<ByteBuf> rcvQueue;
 
     private Rudp rudp;
     private IOutput output;
     private IThreadExecute executor;
     private ResponseListener listener;
+
+    private Rudp2 rudp2;
+
+    private ByteBufAllocator bufAllocator = PooledByteBufAllocator.DEFAULT;
 
     private boolean isActive = true;
     private long lasRcvTime = System.currentTimeMillis(), timeout = 30 * 1000;
@@ -24,17 +32,18 @@ public class RudpPack {
     public RudpPack(IOutput output, IThreadExecute executor, ResponseListener listener) {
         this.output = output;
         this.executor = executor;
-        this.queue_snd = new ConcurrentLinkedQueue<>();
-        this.queue_rcv = new ConcurrentLinkedQueue<>();
-        this.rudp = new Rudp(output);
+        this.sndQueue = new ConcurrentLinkedQueue<>();
+        this.rcvQueue = new ConcurrentLinkedQueue<>();
         this.listener = listener;
+//        this.rudp = new Rudp(output);
+        this.rudp2 = new Rudp2(output);
     }
 
     public boolean write(Message msg) {
-        if (!queue_snd.offer(msg)) {
+        if (!sndQueue.offer(msg)) {
             return false;
         }
-        notifySendEvent();
+        notifySendEvent("Write");
         return true;
     }
 
@@ -51,7 +60,7 @@ public class RudpPack {
     public void read(ByteBuf buf) {
         ByteBuf buf1 = PooledByteBufAllocator.DEFAULT.buffer(buf.readableBytes());
         buf1.writeBytes(buf);
-        this.queue_rcv.add(buf1);
+        this.rcvQueue.add(buf1);
         notifyRcvEvent();
     }
 
@@ -66,8 +75,9 @@ public class RudpPack {
         rudp.sendFinish();
     }
 
-    public void notifySendEvent() {
-        SndTask task = SndTask.New(this);
+    //测试,添加name
+    public void notifySendEvent(String name) {
+        SndTask task = SndTask.New(this,name);
         this.executor.execute(task);
     }
 
@@ -96,8 +106,8 @@ public class RudpPack {
 
     }
 
-    public Queue<ByteBuf> getQueue_rcv() {
-        return queue_rcv;
+    public ConcurrentLinkedQueue<ByteBuf> getQueue_rcv() {
+        return rcvQueue;
     }
 
     public int getInterval() {
@@ -128,6 +138,10 @@ public class RudpPack {
         return rudp.isStop();
     }
 
+    public boolean isStop2(){
+        return rudp2.isStop();
+    }
+
     public long getLasRcvTime() {
         return lasRcvTime;
     }
@@ -137,14 +151,14 @@ public class RudpPack {
     }
 
     public void release() {
-        rudp.release();
-        queue_rcv.forEach(buf -> buf.release());
+//        rudp.release();
+        rcvQueue.forEach(buf -> buf.release());
+        this.rudp2 = null;
     }
 
     public ConcurrentLinkedQueue<Message> getQueue_snd() {
-        return queue_snd;
+        return sndQueue;
     }
-
 
     public IOutput getOutput() {
         return output;
@@ -154,8 +168,91 @@ public class RudpPack {
         return rudp;
     }
 
-    public static RudpPack newInstance(IOutput output, IThreadExecute executor, ResponseListener responseListener) {
-        return new RudpPack(output, executor, responseListener);
+    public static RudpPack newInstance(IOutput output, IThreadExecute executor, ResponseListener responseListener, IAddrManager addrManager) {
+        RudpPack rudpPack = new RudpPack(output,executor,responseListener);
+//        RudpScheduleTask scheduleTask = new RudpScheduleTask(executor, rudpPack, addrManager);
+//        executor.executeTimerTask(scheduleTask, rudpPack.getInterval());
+        ScheduleTask scheduleTask = new ScheduleTask(executor,rudpPack,addrManager);
+        executor.executeTimerTask(scheduleTask,rudpPack.getInterval2());
+        return rudpPack;
+    }
+
+    /**
+     * ----------------------------------------------------Rudp2
+     */
+    public boolean send2(Message msg){
+        if (!sndQueue.offer(msg))
+            return false;
+        notifySndTask2();
+        return true;
+    }
+
+    public void notifySndTask2() {
+        ppex.proto.rudp2.SndTask st = ppex.proto.rudp2.SndTask.New(this, "");
+        this.executor.execute(st);
+    }
+
+    public void send2Rudp2(Message msg){
+        this.rudp2.snd(msg);
+    }
+
+    public void mvChkFromSnd2SndAck(){
+        this.rudp2.mvChkFromSnd2SndAck();
+    }
+    public void rcv2(ByteBuf buf){
+        ByteBuf bufTmp = bufAllocator.buffer(buf.readableBytes());
+        bufTmp.writeBytes(buf);
+        this.rcvQueue.add(bufTmp);
+        notifyRcvTask2();
+    }
+
+    public void input2(ByteBuf buf,long time){
+        this.lasRcvTime = System.currentTimeMillis();
+        this.rudp2.rcv(buf,time);
+    }
+
+    public void arrangeRcvData(){
+        this.rudp2.arrangeRcvShambles();
+    }
+
+    public void notifyRcvTask2() {
+        ppex.proto.rudp2.RcvTask rt = ppex.proto.rudp2.RcvTask.New(this, "");
+        this.executor.execute(rt);
+    }
+
+    public boolean canSnd2(){
+        return this.rudp2.canSndMsg();
+    }
+
+    public void sndStartConnecting(){
+        this.rudp2.sndStartChunk();
+    }
+    public int getRcvNxt2(){
+        return rudp2.getRcvNxt();
+    }
+
+    public long flush2(long time){
+        return this.rudp2.flush(time);
+    }
+
+    public boolean canRcv2(){
+        return this.rudp2.canRcv();
+    }
+
+    public Message getMsg2(){
+        return this.rudp2.mergeMsg();
+    }
+
+    public int getInterval2(){
+        return this.rudp2.getInterval();
+    }
+
+    public LinkedList<Chunk> getRcvOrder(){
+        return rudp2.getRcvOrder();
+    }
+
+    public LinkedList<Chunk> getRcvShambles(){
+        return rudp2.getRcvShambles();
     }
 
 }

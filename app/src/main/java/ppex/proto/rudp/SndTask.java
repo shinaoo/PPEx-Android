@@ -9,10 +9,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SndTask implements ITask {
 
     private RudpPack rudpkg;
+    private String name;
 
-    public static SndTask New(RudpPack rudpkg) {
+    public static SndTask New(RudpPack rudpkg,String name) {
         SndTask sendTask = new SndTask();
         sendTask.rudpkg = rudpkg;
+        sendTask.name = name;
         return sendTask;
     }
 

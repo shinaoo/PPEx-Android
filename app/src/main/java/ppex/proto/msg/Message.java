@@ -9,33 +9,36 @@ import ppex.proto.msg.type.TypeMessage;
  * --    0x01    --+--  msg type  --+--contentlength--+--   content   --+
  *-----------------+----------------+-----------------+-----------------+
  *
- * 2019-9-25 修改,将msg type放入content,解析content再获取type类型,为了后面udp实现realiable
+ * 2019-9-25 修改,将msg type放入content,解析content再获取type类型
  * -----8bits-----+-----32bits------+-----content-----+
  * --    0x01   --+--contentlength--+--   content   --+
  *----------------+-----------------+-----------------+
- *
- *
- *
  *
  * 2019-10-9.加入msg id 64位和 current 64位和total 64位(未实现.todo)
  * +-----64bits---+-----64bits----+----64bits-------+------32bits-------+-----content-----+
  * +    msg id    +     current   +     total       +-- contentlength --+--   content   --+
  * +--------------+---------------+-----------------+-------------------+-----------------+
  *
+ * 2019-12-23
+ * -----8bits-----+-----64bit------+-----32bit------+---content---+
+ * --    0x01   --+--   msg id   --+--   length   --+   content   +
+ *----------------+----------------+----------------+-------------+
+ *
  */
 public class Message {
-    public static final int ID_LEN = 8;
     public static final int VERSIONLENGTH = 1;
+    public static final int ID_LEN = 8;
     public static final int CONTENTLENGTH = 4;
 
     private byte version;
     private long msgid;
     private int length;
-    private String content;
+//    private String content;
+    private byte[] content;
 
     public Message(long msgid) {
         this.msgid = msgid;
-        this.version = 1;
+        this.version = 0x1;
     }
 
     public byte getVersion() {
@@ -62,18 +65,23 @@ public class Message {
         this.length = length;
     }
 
-    public String getContent() {
+    public byte[] getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(byte[] content){
         this.content = content;
-        this.length = content.getBytes(CharsetUtil.UTF_8).length;
+        this.length = this.content.length;
+    }
+
+    public void setContent(String content) {
+        this.content = content.getBytes(CharsetUtil.UTF_8);
+        this.length = this.content.length;
     }
 
     public void setContent(TypeMessage typeMessage){
-        this.content = JSON.toJSONString(typeMessage);
-        this.length = content.getBytes(CharsetUtil.UTF_8).length;
+        this.content = JSON.toJSONString(typeMessage).getBytes(CharsetUtil.UTF_8);
+        this.length = this.content.length;
     }
 
     @Override
