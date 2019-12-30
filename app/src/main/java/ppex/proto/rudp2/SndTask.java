@@ -22,7 +22,7 @@ public class SndTask implements ITask {
     @Override
     public void execute() {
         try {
-            ConcurrentLinkedQueue<Message> msgs = rpkg.getQueue_snd();
+            ConcurrentLinkedQueue<Message> msgs = rpkg.getSndQueue();
             if (rpkg.canSnd2()) {
                 while (!msgs.isEmpty()) {
                     Message msg = msgs.poll();

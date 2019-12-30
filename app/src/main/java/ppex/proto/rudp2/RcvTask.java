@@ -29,7 +29,7 @@ public class RcvTask implements ITask {
     @Override
     public void execute() {
         try {
-            ConcurrentLinkedQueue<ByteBuf> rcvList = rpkg.getQueue_rcv();
+            ConcurrentLinkedQueue<ByteBuf> rcvList = rpkg.getRcvQueue();
             long time = System.currentTimeMillis();
             while (rcvList.size() > 0) {
                 ByteBuf buf = rcvList.poll();

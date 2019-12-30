@@ -197,6 +197,7 @@ public class ConnectedActivity extends Activity {
                 break;
             case FILE_ADD_SUCC:
                 Log.e("MyTag","rcv file_add_succ");
+                new Thread(() -> startSendFile());
                 startSendFile();
                 break;
         }
@@ -225,6 +226,7 @@ public class ConnectedActivity extends Activity {
                 ftm.setAction(ByteUtil.int2byteArr(FileTypeMsg.ACTION.UPD.ordinal())[0]);
                 ftm.setData(JSON.toJSONString(fileInfo));
                 rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
+                Log.e("MyTag","snd file seek:" + seek);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -237,6 +239,7 @@ public class ConnectedActivity extends Activity {
                 }
             }
         }
+        Log.e("MyTag","snd file finish");
 
     }
 

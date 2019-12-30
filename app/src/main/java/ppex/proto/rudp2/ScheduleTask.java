@@ -51,7 +51,7 @@ public class ScheduleTask implements ITask {
             }
             long nxt = rudpPack.flush2(now);
             executor.executeTimerTask(this, nxt);
-            if (!rudpPack.getQueue_snd().isEmpty()) {
+            if (!rudpPack.getSndQueue().isEmpty()) {
                 rudpPack.notifySndTask2();
             }
             if (rudpPack.getRcvOrder().size() != 0 || rudpPack.getRcvShambles().size() != 0) {

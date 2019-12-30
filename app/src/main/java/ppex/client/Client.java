@@ -178,7 +178,7 @@ public class Client {
     }
 
     public void stop() {
-        addrManager.getAll().forEach(rudpPack -> rudpPack.sendFinish());
+//        addrManager.getAll().forEach(rudpPack -> rudpPack.sendFinish());
         if (channel != null){
             channel.close();
         }
@@ -311,7 +311,7 @@ public class Client {
         msg.setFrom(new InetSocketAddress("127.0.0.1", PORT_3));
         msg.setTo(new InetSocketAddress("127.0.0.1", PORT_1));
         msg.setReq(true);
-        this.getAddrManager().get(addrServer1).write(MessageUtil.txtmsg2Msg(msg));
+        this.getAddrManager().get(addrServer1).send2(MessageUtil.txtmsg2Msg(msg));
     }
 
     public IAddrManager getAddrManager() {
