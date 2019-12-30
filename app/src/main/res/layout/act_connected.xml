@@ -37,7 +37,7 @@
 
         <EditText
             android:id="@+id/et_connected_content"
-            android:layout_width="160dp"
+            android:layout_width="50dp"
             android:layout_height="wrap_content" />
 
         <Button

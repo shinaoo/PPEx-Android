@@ -1,15 +1,10 @@
 package ppex.client.process;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.LinkedList;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.util.CharsetUtil;
 import ppex.client.entity.FileInfo;
 
 /**

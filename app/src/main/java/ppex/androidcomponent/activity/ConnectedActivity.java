@@ -95,7 +95,7 @@ public class ConnectedActivity extends Activity {
 
         localTestFiles = new LinkedList<>();
         Arrays.stream(testFileDir.listFiles()).forEach(file -> localTestFiles.add(file));
-        localTestFiles.forEach(file -> Log.e("MyTag", "file:" + file.getAbsolutePath()));
+//        localTestFiles.forEach(file -> Log.e("MyTag", "file:" + file.getAbsolutePath()));
     }
 
     private void findIds() {
@@ -157,6 +157,7 @@ public class ConnectedActivity extends Activity {
                         RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().getConnTarget().getAddress());
                         rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
                     }
+                    Log.e("MyTag","------->snd add action");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -195,6 +196,7 @@ public class ConnectedActivity extends Activity {
                 filesAdapter.notifyDataSetChanged();
                 break;
             case FILE_ADD_SUCC:
+                Log.e("MyTag","rcv file_add_succ");
                 startSendFile();
                 break;
         }

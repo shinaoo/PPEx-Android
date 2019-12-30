@@ -6,6 +6,9 @@ public class FileInfo {
     private long seek;
     private String data;
 
+    public FileInfo() {
+    }
+
     public FileInfo(String name, long length, long seek, String data) {
         this.name = name;
         this.length = length;
