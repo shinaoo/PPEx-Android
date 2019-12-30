@@ -3,53 +3,32 @@ package ppex.proto.msg.type;
 import java.net.InetSocketAddress;
 
 public class FileTypeMsg {
-    private String filename;
-    private InetSocketAddress to;
-    private long uniqueid;
-    private long total;
-    private long start;         //start=-1时结束.
-    private long end;
-    private String data;
 
     public FileTypeMsg() {
     }
 
-    public FileTypeMsg(String filename, InetSocketAddress to, long uniqueid, long total, long start, long end, String data) {
-        this.filename = filename;
+    public enum ACTION{
+        DEL,
+        ADD,
+        UPD,
+        SEL,
+        ADD_ACK_SUCC,
+        ADD_ACK_FAIL,
+        DEL_ACK_SUCC,
+        DEL_ACK_FAIL,
+        UPD_ACK_SUCC,
+        UPD_ACK_FAIL,
+        SEL_ACK_SUCC,
+        SEL_ACK_FAIL,
+    }
+    private InetSocketAddress to;
+    private byte action;
+    private String data;
+
+    public FileTypeMsg(InetSocketAddress to, byte action, String data) {
         this.to = to;
-        this.uniqueid = uniqueid;
-        this.total = total;
-        this.start = start;
-        this.end = end;
+        this.action = action;
         this.data = data;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public long getUniqueid() {
-        return uniqueid;
-    }
-
-    public void setUniqueid(long uniqueid) {
-        this.uniqueid = uniqueid;
-    }
-
-    public long getTotal() {
-        return total;
-    }
-
-    public void setTotal(long total) {
-        this.total = total;
-    }
-
-    public long getStart() {
-        return start;
     }
 
     public InetSocketAddress getTo() {
@@ -60,16 +39,12 @@ public class FileTypeMsg {
         this.to = to;
     }
 
-    public void setStart(long start) {
-        this.start = start;
+    public byte getAction() {
+        return action;
     }
 
-    public long getEnd() {
-        return end;
-    }
-
-    public void setEnd(long end) {
-        this.end = end;
+    public void setAction(byte action) {
+        this.action = action;
     }
 
     public String getData() {

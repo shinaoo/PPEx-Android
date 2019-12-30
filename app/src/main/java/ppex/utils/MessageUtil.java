@@ -292,6 +292,15 @@ public class MessageUtil {
         return msg;
     }
 
+    public static Message filemsg2Msg(FileTypeMsg ftm){
+        TypeMessage typeMessage = new TypeMessage();
+        typeMessage.setType(TypeMessage.Type.MSG_TYPE_FILE.ordinal());
+        typeMessage.setBody(JSON.toJSONString(ftm));
+        Message msg = new Message(LongIDUtil.getCurrentId());
+        msg.setContent(typeMessage);
+        return msg;
+    }
+
 
     /**
      * ----------------------------------------------生成探测ProbeTypeMsg部分----------------------------------------------------

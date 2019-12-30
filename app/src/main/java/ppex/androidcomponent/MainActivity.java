@@ -2,6 +2,7 @@ package ppex.androidcomponent;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
@@ -22,6 +23,7 @@ import ppex.androidcomponent.busevent.BusEvent;
 import ppex.client.Client;
 import ppex.client.R;
 import ppex.client.process.DetectProcess;
+import ppex.client.process.FileProcess;
 import ppex.client.process.ThroughProcess;
 import ppex.proto.entity.Connection;
 import ppex.utils.NatTypeUtil;
@@ -39,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Client client;
     private Object detectResult = new Object();
+
+    private FileProcess fileProcess;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,28 +86,12 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-//                EventBus.getDefault().post(new BusEvent(BusEvent.Type.DETECT_END_OF.getValue()));
             }).start();
-//            Client.getInstance().NAT_TYPE = DetectProcess.getInstance().getClientNATType().ordinal();
-//            Log.e(TAG, "Client get nattype is :" + Client.getInstance().NAT_TYPE);
-//
-//            Connection connection = new Connection(Client.getInstance().MAC_ADDRESS, Client.getInstance().SERVER1, "Server1", Client.getInstance().NAT_TYPE, Client.getInstance().getChannels().get(0));
-//            Client.getInstance().localConnection = connection;
-//            tv_shownattypeinfo.setText(Constants.getNatStrByValue(Client.getInstance().NAT_TYPE));
         });
         btn_sendinfo.setOnClickListener(v -> ThroughProcess.getInstance().sendSaveInfo());
         btn_getallpeers.setOnClickListener(v -> ThroughProcess.getInstance().getConnectionsFromServer());
         lv_showallpeers.setOnItemClickListener((parent, view, position, id) -> ThroughProcess.getInstance().connectPeer(connections.get(position), client.getAddrManager()));
         btn_test.setOnClickListener(view -> {
-//            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
-//            txtTypeMsg.setReq(true);
-//            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
-//            txtTypeMsg.setTo(Client.getInstance().SERVER1);
-//            txtTypeMsg.setContent("");
-//            Log.e(TAG, "txtTYpemsg:" + txtTypeMsg.getContent());
-////            channel.writeAndFlush(MessageUtil.txtMsg2packet(txtTypeMsg, Client.getInstance().SERVER1));
-//            RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().SERVER1);
-//            rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
         });
     }
 
@@ -124,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
             ThroughProcess.getInstance().setClient(client);
             EventBus.getDefault().post(new BusEvent(BusEvent.Type.CLIENT_INIT_END.getValue()));
         }).start();
+
+        fileProcess = FileProcess.getInstance();
+        fileProcess.setRoot(Environment.getExternalStorageDirectory());
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)

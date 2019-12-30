@@ -26,6 +26,10 @@ public class BusEvent {
         THROUGN_RCV_CONNECT_PONG(13),
         THROUGH_END(14),
 
+        //文件
+        FILE_ADD_SUCC(15),
+        FILE_ADD_FAIL(16),
+
         ;
         private int value;
         Type(int value){
