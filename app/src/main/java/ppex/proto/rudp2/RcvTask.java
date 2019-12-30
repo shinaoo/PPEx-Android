@@ -36,7 +36,7 @@ public class RcvTask implements ITask {
                 if (buf == null)
                     continue;
                 rpkg.input2(buf,time);
-                Log.e("MyTag","RcvTask input2");
+//                Log.e("MyTag","RcvTask input2");
                 buf.release();
             }
             this.rpkg.arrangeRcvData();
@@ -44,7 +44,7 @@ public class RcvTask implements ITask {
                 Message msg = rpkg.getMsg2();
                 if (msg == null)
                     break;
-                Log.e("MyTag","rcv msg:" + msg.getMsgid());
+//                Log.e("MyTag","rcv msg:" + msg.getMsgid());
                 rpkg.getListener().onResponse(rpkg,msg);
             }
         } catch (Exception e) {

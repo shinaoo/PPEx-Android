@@ -99,11 +99,13 @@ public class DetectProcess {
 //            rudpPack = new RudpPack(outputServer1, client.getExecutor(), client.getResponseListener());
             rudpPack = RudpPack.newInstance(outputServer1,client.getExecutor(),client.getResponseListener(),client.getAddrManager());
             client.getAddrManager().New(client.getAddrServer1(), rudpPack);
-            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+            rudpPack.send2(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+//            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
 //            RudpScheduleTask task = new RudpScheduleTask(client.getExecutor(), rudpPack, client.getAddrManager());
 //            client.getExecutor().executeTimerTask(task, rudpPack.getInterval());
         }else{
-            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+//            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
+            rudpPack.send2(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepOneProbeTypeMsg(client.getAddrLocal())));
         }
 
     }
@@ -116,11 +118,13 @@ public class DetectProcess {
 //            rudpPack = new RudpPack(outputServer1, client.getExecutor(), client.getResponseListener());
             rudpPack = RudpPack.newInstance(outputServer1,client.getExecutor(),client.getResponseListener(),client.getAddrManager());
             client.getAddrManager().New(client.getAddrServer2p1(), rudpPack);
-            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+            rudpPack.send2(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+            //            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
 //            RudpScheduleTask task = new RudpScheduleTask(client.getExecutor(), rudpPack, client.getAddrManager());
 //            client.getExecutor().executeTimerTask(task, rudpPack.getInterval());
         }else{
-            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+//            rudpPack.write(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
+            rudpPack.send2(MessageUtil.probemsg2Msg(MessageUtil.makeClientStepTwoProbeTypeMsg(client.getAddrLocal())));
         }
     }
 

@@ -314,7 +314,7 @@ public class MessageUtil {
     public static ProbeTypeMsg makeClientStepTwoProbeTypeMsg(InetSocketAddress inetSocketAddress) {
         ProbeTypeMsg probeTypeMsg = new ProbeTypeMsg(TypeMessage.Type.MSG_TYPE_PROBE.ordinal(), inetSocketAddress);
         probeTypeMsg.setType(ProbeTypeMsg.Type.FROM_CLIENT.ordinal());
-        probeTypeMsg.setStep(ByteUtil.int2byteArr(ProbeTypeMsg.Step.TWO.ordinal())[3]);
+        probeTypeMsg.setStep(ByteUtil.int2byteArr(ProbeTypeMsg.Step.TWO.ordinal())[0]);
         return probeTypeMsg;
     }
 
