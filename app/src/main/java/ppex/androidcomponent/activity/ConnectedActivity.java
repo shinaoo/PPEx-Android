@@ -30,6 +30,10 @@ import ppex.androidcomponent.handler.client.RequestClient;
 import ppex.client.Client;
 import ppex.client.R;
 import ppex.proto.entity.testpack.Files;
+import ppex.proto.entity.through.Connect;
+import ppex.proto.msg.type.TxtTypeMsg;
+import ppex.proto.rudp.RudpPack;
+import ppex.utils.MessageUtil;
 
 public class ConnectedActivity extends Activity {
 
@@ -96,21 +100,28 @@ public class ConnectedActivity extends Activity {
             params.put("path","root");
             RequestClient.getDefault().sendRequest("/file/getfiles",null,params);
         });
-//        btn_send.setOnClickListener(v ->{
-////            String contetn = et_content.getText().toString();
-////            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
-////            txtTypeMsg.setFrom(Client.getInstance().localConnection.getAddress());
-////            txtTypeMsg.setTo(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
-////            txtTypeMsg.setReq(true);
-////            txtTypeMsg.setContent(contetn);
-////            if(connectType == Connect.TYPE.FORWARD.ordinal()){
-////                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().SERVER1);
-////                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
-////            }else{
-////                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
-////                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
-////            }
-////        });
+        btn_send.setOnClickListener(v ->{
+            String content = et_content.getText().toString();
+            TxtTypeMsg txtTypeMsg = new TxtTypeMsg();
+            txtTypeMsg.setFrom(Client.getInstance().getAddrLocal());
+            txtTypeMsg.setTo(Client.getInstance().getConnTarget().getAddress());
+            txtTypeMsg.setReq(true);
+            txtTypeMsg.setContent(content);
+            if (Client.getInstance().getConnType2Target() == Connect.TYPE.FORWARD){
+                RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().getAddrServer1());
+                rudpPack.send2(MessageUtil.txtmsg2Msg(txtTypeMsg));
+            }else{
+                RudpPack rudpPack = Client.getInstance().getAddrManager().get(Client.getInstance().getConnTarget().getAddress());
+                rudpPack.send2(MessageUtil.txtmsg2Msg(txtTypeMsg));
+            }
+//            if(connectType == Connect.TYPE.FORWARD.ordinal()){
+//                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().SERVER1);
+//                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+//            }else{
+//                RudpPack rudpPack = Client.getInstance().addrManager.get(Client.getInstance().connectedMaps.get(0).getConnections().get(1).getAddress());
+//                rudpPack.write(MessageUtil.txtmsg2Msg(txtTypeMsg));
+//            }
+        });
         lv_showfiles.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
