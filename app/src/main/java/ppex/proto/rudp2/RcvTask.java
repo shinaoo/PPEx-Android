@@ -1,5 +1,7 @@
 package ppex.proto.rudp2;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.util.Timeout;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ public class RcvTask implements ITask {
                 if (buf == null)
                     continue;
                 rpkg.input2(buf,time);
+                Log.e("MyTag","RcvTask input2");
                 buf.release();
             }
             this.rpkg.arrangeRcvData();
@@ -41,6 +44,7 @@ public class RcvTask implements ITask {
                 Message msg = rpkg.getMsg2();
                 if (msg == null)
                     break;
+                Log.e("MyTag","rcv msg:" + msg.getMsgid());
                 rpkg.getListener().onResponse(rpkg,msg);
             }
         } catch (Exception e) {

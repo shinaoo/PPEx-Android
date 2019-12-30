@@ -1,5 +1,7 @@
 package ppex.client.rudp;
 
+import android.util.Log;
+
 import ppex.client.handlers.*;
 import ppex.proto.msg.Message;
 import ppex.proto.msg.MessageHandler;
@@ -26,6 +28,7 @@ public class MsgResponse implements ResponseListener {
 
     @Override
     public void onResponse(RudpPack rudpPack, Message message) {
+        Log.e("MTag","onresponse..");
         this.msgHandler.handleMessage(rudpPack,addrManager,message);
     }
 }

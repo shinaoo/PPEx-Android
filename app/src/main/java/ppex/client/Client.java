@@ -152,26 +152,28 @@ public class Client {
         outputManager.put(addrServer1, outputServer1);
         RudpPack rudpPack = addrManager.get(addrServer1);
         if (rudpPack == null) {
-            rudpPack = new RudpPack(outputServer1, executor, responseListener);
+//            rudpPack = new RudpPack(outputServer1, executor, responseListener);
+            rudpPack = RudpPack.newInstance(outputServer1,executor,responseListener,addrManager);
             addrManager.New(addrServer1, rudpPack);
 //            rudpPack.sendReset();
         }
-
-        RudpScheduleTask task = new RudpScheduleTask(executor, rudpPack, addrManager);
-        executor.executeTimerTask(task, rudpPack.getInterval());
+//
+//        RudpScheduleTask task = new RudpScheduleTask(executor, rudpPack, addrManager);
+//        executor.executeTimerTask(task, rudpPack.getInterval());
 
         connServer2p1 = new Connection("Server2P1", addrServer2p1, "Server2P1", NatTypeUtil.NatType.UNKNOWN.getValue());
         IOutput outputServer2P1 = new ClientOutput(channel, connServer2p1);
         outputManager.put(addrServer2p1, outputServer2P1);
         RudpPack rudpPack2 = addrManager.get(addrServer2p1);
         if (rudpPack2 == null) {
-            rudpPack2 = new RudpPack(outputServer2P1, executor, responseListener);
+//            rudpPack2 = new RudpPack(outputServer2P1, executor, responseListener);
+            rudpPack2 = RudpPack.newInstance(outputServer2P1,executor,responseListener,addrManager);
             addrManager.New(addrServer2p1, rudpPack2);
 //            rudpPack2.sendReset();
         }
 
-        RudpScheduleTask task2 = new RudpScheduleTask(executor, rudpPack2, addrManager);
-        executor.executeTimerTask(task2, rudpPack2.getInterval());
+//        RudpScheduleTask task2 = new RudpScheduleTask(executor, rudpPack2, addrManager);
+//        executor.executeTimerTask(task2, rudpPack2.getInterval());
 
     }
 
