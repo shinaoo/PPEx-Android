@@ -91,7 +91,7 @@ public class ConnectedActivity extends Activity {
         sdFile = Environment.getExternalStorageDirectory();
         testFileDir = new File(sdFile.getAbsolutePath(), "/test");
 
-        targetFile = new File(testFileDir, "test.pdf");
+        targetFile = new File(testFileDir, "1.jpg");
 
         localTestFiles = new LinkedList<>();
         Arrays.stream(testFileDir.listFiles()).forEach(file -> localTestFiles.add(file));
@@ -145,7 +145,7 @@ public class ConnectedActivity extends Activity {
         btn_sendfile.setOnClickListener(v -> {
             new Thread(() -> {
                 try {
-                    FileInfo fileInfo = new FileInfo("test.pdf", targetFile.length(), 0, "");
+                    FileInfo fileInfo = new FileInfo("1.jpg", targetFile.length(), 0, "");
                     FileTypeMsg ftm = new FileTypeMsg();
                     ftm.setAction(ByteUtil.int2byteArr(FileTypeMsg.ACTION.ADD.ordinal())[0]);
                     ftm.setTo(Client.getInstance().getConnTarget().getAddress());
@@ -225,8 +225,8 @@ public class ConnectedActivity extends Activity {
                 ftm.setTo(client.getConnTarget().getAddress());
                 ftm.setAction(ByteUtil.int2byteArr(FileTypeMsg.ACTION.UPD.ordinal())[0]);
                 ftm.setData(JSON.toJSONString(fileInfo));
-                rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
-                Log.e("MyTag","snd file seek:" + seek);
+                boolean ret = rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
+                Log.e("MyTag","snd file seek:" + seek + " ret:" + ret);
             }
         } catch (Exception e) {
             e.printStackTrace();

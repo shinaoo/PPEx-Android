@@ -51,7 +51,7 @@ public class RudpParam {
 
     public static final int NO_DEFILE_RTO = 30;
     public static final int RTO_MIN = 100;
-    public static final int RTO_DEFAULT = 200;
+    public static final int RTO_DEFAULT = 300;
     public static final int RTO_MAX = 30000;
 
     public static final byte CMD_SND = 1;
@@ -75,7 +75,7 @@ public class RudpParam {
     public static final int WND_RCV = 32;
 
     //默认周期
-    public static final int INTERVAL_DEFAULT = 100;
+    public static final int INTERVAL_DEFAULT = 200;
 
     //快速重传默认值
     public static final int FASTACK_DEFAULT = 5;

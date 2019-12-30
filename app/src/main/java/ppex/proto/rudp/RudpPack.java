@@ -233,8 +233,11 @@ public class RudpPack {
     }
 
     public boolean canSnd2() {
-        Log.e("MyTag", "rudp2 isnull:" + (this.rudp2 == null));
-        return this.rudp2.canSndMsg();
+        if (!isStop2()) {
+            return this.rudp2.canSndMsg();
+        } else {
+            return false;
+        }
     }
 
     public void sndStartConnecting() {
