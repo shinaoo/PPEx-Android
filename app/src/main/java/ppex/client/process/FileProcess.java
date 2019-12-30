@@ -84,6 +84,7 @@ public class FileProcess {
                 while (fileWait) {
                     fileLock.wait();
                 }
+                fileWait = true;
                 File file = new File(root,fileInfo.getName());
                 raf = new RandomAccessFile(file,"w");
                 raf.seek(fileInfo.getSeek());
