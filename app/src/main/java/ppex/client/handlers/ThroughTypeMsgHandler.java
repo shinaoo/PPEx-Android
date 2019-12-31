@@ -179,19 +179,21 @@ public class ThroughTypeMsgHandler implements TypeMessageHandler {
             connect.setType(Connect.TYPE.CONNECT_PONG.ordinal());
             ttmsg.setContent(JSON.toJSONString(connect));
 
-            rudpPack = addrManager.get(connections.get(0).getAddress());
-            if (rudpPack == null) {
-                IOutput output = new ClientOutput(channel, connections.get(0));
+            if (!connections.get(0).getAddress().equals(Client.getInstance().getAddrLocal())){
+                rudpPack = addrManager.get(connections.get(0).getAddress());
+                if (rudpPack == null) {
+                    IOutput output = new ClientOutput(channel, connections.get(0));
 //                rudpPack = new RudpPack(output, Client.getInstance().getExecutor(), Client.getInstance().getResponseListener());
-                rudpPack = RudpPack.newInstance(output,Client.getInstance().getExecutor(),Client.getInstance().getResponseListener(),addrManager);
-                addrManager.New(connections.get(0).getAddress(), rudpPack);
+                    rudpPack = RudpPack.newInstance(output,Client.getInstance().getExecutor(),Client.getInstance().getResponseListener(),addrManager);
+                    addrManager.New(connections.get(0).getAddress(), rudpPack);
 //                rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
-                rudpPack.send2(MessageUtil.throughmsg2Msg(ttmsg));
+                    rudpPack.send2(MessageUtil.throughmsg2Msg(ttmsg));
 //                RudpScheduleTask rudpScheduleTask = new RudpScheduleTask(Client.getInstance().getExecutor(), rudpPack, addrManager);
 //                Client.getInstance().getExecutor().executeTimerTask(rudpScheduleTask, rudpPack.getInterval());
-            } else {
+                } else {
 //                rudpPack.write(MessageUtil.throughmsg2Msg(ttmsg));
-                rudpPack.send2(MessageUtil.throughmsg2Msg(ttmsg));
+                    rudpPack.send2(MessageUtil.throughmsg2Msg(ttmsg));
+                }
             }
             Log.e("MyTag", "----------->rcv connectping normal return connect pong");
             //todo 之前有一个ConnectedMap保存已经连接上的连接.现在去掉了,之后再考虑如何

@@ -1,10 +1,14 @@
 package ppex.proto.rudp2;
 
+import android.util.Log;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ppex.proto.Statistic;
 import ppex.proto.msg.Message;
 import ppex.proto.rudp.IOutput;
@@ -94,7 +98,7 @@ public class Rudp2 {
                         chunk.all = 1;
                         chunk.ots = startChunkTs;
                         chunk.ts = startChunkTs;
-                        chunk.sn = 0;
+                        chunk.sn = -1;
                         chunk.una = sndUna;
                         chunk.length = chunk.data.length;
                         ByteBuf buf1 = createOutputByteBuf(chunk);
@@ -251,19 +255,23 @@ public class Rudp2 {
             }
             switch (cmd) {
                 case RudpParam.CMD_SND:
+                    Log.e("MyTag","rcv sn:"+ sn + " from:" + this.output.getConn().getAddress());
                     byte[] data = new byte[length];
                     buf.readBytes(data, 0, length);
                     //todo 应该还要处理一种 this.tag == New && tag== Old的情况
                     affirmSnd(tag, msgid, tot, all, ts, sn, sndMax, length, data);
                     break;
                 case RudpParam.CMD_ACK:
+                    Log.e("MyTag", "ack sn:" + sn + " from:" + this.output.getConn().getAddress());
                     affirmAck(sn, tag);
                     Statistic.rcvAckCount.getAndIncrement();
                     break;
                 case RudpParam.CMD_START:
+                    Log.e("MyTag","rcv cmd_start sn:" + sn);
                     rcvStartChunk(tag, ots);
                     break;
                 case RudpParam.CMD_START_ACK:
+                    Log.e("MyTag","rcv cmd_start_ack:" + sn);
                     affirmStartChunkAck(tag, ots);
                     break;
             }
@@ -298,13 +306,13 @@ public class Rudp2 {
             chunk.all = 1;
             chunk.ots = ots;
             chunk.ts = ots;
-            chunk.sn = 0;
+            chunk.sn = -1;
             chunk.una = sndUna;
             chunk.length = chunk.data.length;
             chunk.xmit = 0;
 //            sndAckList.addLast(chunk);
             ByteBuf buf = createOutputByteBuf(chunk);
-            sndChunk(buf,chunk.sn);
+            sndChunk(buf, chunk.sn);
 //            LOGGER.info("snd back chunk");
         }
     }
@@ -345,6 +353,7 @@ public class Rudp2 {
     private void sndChunk(ByteBuf buf, long sn) {
         if (output != null) {
             output.output(buf, this, sn);
+            Log.e("MyTag","snd sn:" + sn + " to:" + output.getConn().getAddress());
             Statistic.outputCount.getAndIncrement();
         } else {
             System.out.println("output is null");
@@ -352,6 +361,7 @@ public class Rudp2 {
     }
 
     private void affirmAck(int sn, byte tag) {
+
         synchronized (sndAckLock) {
             try {
                 while (sndAckWait) {
@@ -391,6 +401,8 @@ public class Rudp2 {
         chunk.sn = sn;
         chunk.una = una;
         chunk.length = length;
+        flushAck(sn);
+        Log.e("MyTag","affirm snd sn:" + sn + " from:" + this.output.getConn().getAddress());
 //        LOGGER.info("rudp2 affirmSnd :" +  " order size:" + rcvOrder.size() + " sb size:" + rcvShambles.size());
         synchronized (rcvShamebleLock) {
             try {
@@ -400,17 +412,16 @@ public class Rudp2 {
                 rcvShambleWait = true;
 
                 boolean add = false;
-                add = sn >= rcvNxt && !rcvShambles.stream().anyMatch(chunk1 -> chunk == null ? false:(chunk1.sn == sn));
-                if (add){
+                add = sn >= rcvNxt && !rcvShambles.stream().anyMatch(chunk1 -> chunk == null ? false : (chunk1.sn == sn));
+                if (add) {
                     rcvShambles.addLast(chunk);
-                    LOGGER.info("add sn:" + chunk.sn + " " +sn);
+                    LOGGER.info("add sn:" + chunk.sn + " " + sn);
                 }
 //                boolean exist = rcvShambles.stream().anyMatch(chunk1 -> chunk1 == null ? false : (chunk1.sn == sn));
 //                exist = sn < rcvNxt;
 //                if (!exist) {
 //                    rcvShambles.add(chunk);
 //                }
-                flushAck(sn);
                 Statistic.rcvCount.getAndIncrement();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -601,10 +612,10 @@ public class Rudp2 {
     }
 
 
-    private String getSnStrsByInteger(LinkedList<Integer> sns){
+    private String getSnStrsByInteger(LinkedList<Integer> sns) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        for (Integer in : sns){
+        for (Integer in : sns) {
             sb.append(in + " ");
         }
         sb.append("]");
