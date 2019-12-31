@@ -1,5 +1,10 @@
 package ppex.client;
 
+import android.util.Log;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -11,6 +16,8 @@ import ppex.proto.rudp.RudpScheduleTask;
 
 public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
+
     private Client client;
 
     public ClientHandler(Client client) {
@@ -19,7 +26,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket packet) throws Exception {
-//        System.out.println("read from :" + packet.sender());
+        Log.e("MyTag","read from :" + packet.sender());
         if (packet.sender().equals(Client.getInstance().getAddrLocal())){
             return;
         }

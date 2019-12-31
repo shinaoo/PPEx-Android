@@ -1,5 +1,7 @@
 package ppex.client.handlers;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
 
 import org.greenrobot.eventbus.EventBus;
@@ -28,6 +30,7 @@ public class FileTypeMsgHandler implements TypeMessageHandler {
         //Client只处理的是接收到的
         FileTypeMsg ftm = JSON.parseObject(tmsg.getBody(), FileTypeMsg.class);
         FileInfo fileInfo = JSON.parseObject(ftm.getData(), FileInfo.class);
+        Log.e("MyTag","FileTypeMsgHandler:");
         if (ftm.getAction() == FileTypeMsg.ACTION.ADD.ordinal()) {
             boolean ret = fileProcess.acceptADDAction(fileInfo);
             ftm.setAction(ByteUtil.int2byteArr(ret ? FileTypeMsg.ACTION.ADD_ACK_SUCC.ordinal() : FileTypeMsg.ACTION.ADD_ACK_FAIL.ordinal())[0]);

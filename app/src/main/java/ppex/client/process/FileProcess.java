@@ -1,5 +1,7 @@
 package ppex.client.process;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -73,6 +75,7 @@ public class FileProcess {
     }
 
     public boolean acceptUPDAction(FileInfo fileInfo) {
+        Log.e("MyTag","accept udp action:" + fileInfo.getName());
         synchronized (fileLock) {
             RandomAccessFile raf = null;
             try {
@@ -84,6 +87,7 @@ public class FileProcess {
                 raf = new RandomAccessFile(file,"w");
                 raf.seek(fileInfo.getSeek());
                 raf.write(fileInfo.getData().getBytes());
+                Log.e("MyTag","rcv file seek:" + fileInfo.getSeek());
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {

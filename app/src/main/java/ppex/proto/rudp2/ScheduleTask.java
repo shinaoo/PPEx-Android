@@ -57,8 +57,8 @@ public class ScheduleTask implements ITask {
 //            if (rudpPack.getRcvOrder().size() != 0 || rudpPack.getRcvShambles().size() != 0) {
 //                rudpPack.notifyRcvTask2();
 //            }
-            System.out.printf("to:%s,snd:%d,sndAck:%d,output:%d,rcv:%d,rcvOrder:%d,rcvAck:%d,response:%d,lostChunk:%d,order:%d,shambles:%d\n",this.rudpPack.getOutput().getConn().getAddress().toString(),
-                    Statistic.sndCount.get(), Statistic.sndAckCount.get(), Statistic.outputCount.get(), Statistic.rcvCount.get(), Statistic.rcvOrderCount.get(), Statistic.rcvAckCount.get(), Statistic.responseCount.get(), Statistic.lostChunkCount.get(),rudpPack.getRcvOrder().size(),rudpPack.getRcvShambles().size());
+//            System.out.printf("to:%s,snd:%d,sndAck:%d,output:%d,rcv:%d,rcvOrder:%d,rcvAck:%d,response:%d,lostChunk:%d,order:%d,shambles:%d\n",this.rudpPack.getOutput().getConn().getAddress().toString(),
+//                    Statistic.sndCount.get(), Statistic.sndAckCount.get(), Statistic.outputCount.get(), Statistic.rcvCount.get(), Statistic.rcvOrderCount.get(), Statistic.rcvAckCount.get(), Statistic.responseCount.get(), Statistic.lostChunkCount.get(),rudpPack.getRcvOrder().size(),rudpPack.getRcvShambles().size());
         } catch (Exception e) {
             e.printStackTrace();
         }
