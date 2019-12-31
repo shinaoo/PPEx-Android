@@ -3,7 +3,6 @@ package ppex.androidcomponent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -43,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private Object detectResult = new Object();
 
     private FileProcess fileProcess;
+    private volatile boolean isEnter = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,14 +160,19 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case DETECT_ONE_FROM_SERVER2P2:
             case DETECT_TWO_FROM_SERVER2P2:
-                synchronized (detectResult){
+                synchronized (detectResult) {
                     int nattype = DetectProcess.getInstance().getClientNATType().getValue();
                     client.getConnLocal().setNatType(nattype);
                     tv_shownattypeinfo.setText(NatTypeUtil.getNatStrByValue(DetectProcess.getInstance().getClientNATType().getValue()));
                 }
                 break;
             case THROUGN_RCV_CONNECT_PONG:
-                startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
+                if (isEnter) {
+                    isEnter = false;
+                } else {
+                    isEnter = true;
+                    startActivity(new Intent(MainActivity.this, ConnectedActivity.class));
+                }
                 break;
         }
     }

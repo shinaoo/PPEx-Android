@@ -20,6 +20,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket packet) throws Exception {
 //        System.out.println("read from :" + packet.sender());
+        if (packet.sender().equals(Client.getInstance().getAddrLocal())){
+            return;
+        }
         RudpPack rudpPack = client.getAddrManager().get(packet.sender());
         if (rudpPack != null) {
             rudpPack.getOutput().update(channelHandlerContext.channel());

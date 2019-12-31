@@ -20,9 +20,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 2019-12-23.暂不考虑其他重传算法以及RTT,RTO等时间计算.直接简单粗暴发送与接收
  * 2019-12-24.之前考虑的是有序到达,依靠sndNxt,rcvNxt,sndUna来确定有序到达的顺序.但是出现的问题是当一方断开之后,另一方不知道,还在继续发送.导致出现问题.
- * 所以考虑实现无序可靠到达.
- * 无序到达照样依靠sndNxt,rcvNxt,sndUna.sndNxt与之前一样,每一个就加1.sndUna就是加上每个消息的长度.可能就很大
- * 那么接收的sn顺序在rcvNxt于sndUna之间都可以接收.rcvNxt每一次.当rcvNxt==sndUna时是没有消息发送的
+ * 没有实现滑动窗口与拥塞控制
  */
 public class Rudp2 {
     private static Logger LOGGER = LoggerFactory.getLogger(Rudp2.class);
@@ -51,7 +49,7 @@ public class Rudp2 {
     //数据长度
     private int mtuBody = RudpParam.MTU_BODY;
     //表示段的发送与接收的数值,sndNxt下一次发送的sn号,rcvNxt下一次应该接受的sn号,sndUna未确认的sn号(就是发送了N过过去之后,依然还有最开始的未确认的sn号)
-    private int sndNxt, rcvNxt, sndUna;
+    private volatile int sndNxt, rcvNxt, sndUna;
     //超过发送次数就认为连接断开的值
     private int deadLink = RudpParam.DEAD_LINK;
     //快速重传
@@ -64,6 +62,9 @@ public class Rudp2 {
 
     private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
 
+    //先暂定32个窗口
+    private volatile int wndSnd = RudpParam.WND_SND;
+    private volatile int wndRcv = RudpParam.WND_RCV;
 
     //发送数据公共接口
     private IOutput output;
@@ -271,7 +272,7 @@ public class Rudp2 {
 
     private void rcvStartChunk(byte tag, long ots) {
         //收到startChunk都是New的一方发送过来的。需要清理这边的所有数据
-        LOGGER.info("rcv start chunk:" + tag + " ts:" +ots);
+//        LOGGER.info("rcv start chunk:" + tag + " ts:" +ots);
         if (tag == RudpParam.TAG_NEW) {
             if (this.tag == RudpParam.TAG_NEW) {
                 this.tag = RudpParam.TAG_OLD;
@@ -304,7 +305,7 @@ public class Rudp2 {
 //            sndAckList.addLast(chunk);
             ByteBuf buf = createOutputByteBuf(chunk);
             sndChunk(buf,chunk.sn);
-            LOGGER.info("snd back chunk");
+//            LOGGER.info("snd back chunk");
         }
     }
 
@@ -397,10 +398,18 @@ public class Rudp2 {
                     rcvShamebleLock.wait();
                 }
                 rcvShambleWait = true;
-                boolean exist = rcvShambles.stream().anyMatch(chunk1 -> chunk1 == null ? false : (chunk1.sn == sn));
-                if (!exist) {
-                    rcvShambles.add(chunk);
+
+                boolean add = false;
+                add = sn >= rcvNxt && !rcvShambles.stream().anyMatch(chunk1 -> chunk == null ? false:(chunk1.sn == sn));
+                if (add){
+                    rcvShambles.addLast(chunk);
+                    LOGGER.info("add sn:" + chunk.sn + " " +sn);
                 }
+//                boolean exist = rcvShambles.stream().anyMatch(chunk1 -> chunk1 == null ? false : (chunk1.sn == sn));
+//                exist = sn < rcvNxt;
+//                if (!exist) {
+//                    rcvShambles.add(chunk);
+//                }
                 flushAck(sn);
                 Statistic.rcvCount.getAndIncrement();
             } catch (Exception e) {
@@ -440,6 +449,8 @@ public class Rudp2 {
                         }
                     }
                 }
+                rcvShambles.removeIf(chunk -> chunk.sn < rcvNxt);
+//                LOGGER.info("arrangeRcvShambles rcvNxt:" + rcvNxt);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -567,7 +578,6 @@ public class Rudp2 {
         return rcvNxt;
     }
 
-    @Deprecated
     private void sortChunks(LinkedList<Chunk> chunks) {
         Collections.sort(chunks, new Comparator<Chunk>() {
             @Override
@@ -580,7 +590,6 @@ public class Rudp2 {
         });
     }
 
-    @Deprecated
     private String getSnStrs(LinkedList<Chunk> chunks) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
@@ -591,7 +600,17 @@ public class Rudp2 {
         return sb.toString();
     }
 
-    @Deprecated
+
+    private String getSnStrsByInteger(LinkedList<Integer> sns){
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (Integer in : sns){
+            sb.append(in + " ");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
     private String getIDStrs(LinkedList<Chunk> chunks) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
