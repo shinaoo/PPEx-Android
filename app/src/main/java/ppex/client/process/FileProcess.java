@@ -75,19 +75,23 @@ public class FileProcess {
     }
 
     public boolean acceptUPDAction(FileInfo fileInfo) {
-        Log.e("MyTag","accept udp action:" + fileInfo.getName());
+        Log.e("MyTag","accept udp action:" + fileInfo.getName() + " seek:" + fileInfo.getSeek() + " length:" + fileInfo.getData().getBytes().length);
         synchronized (fileLock) {
             RandomAccessFile raf = null;
+            File file = null;
             try {
                 while (fileWait) {
                     fileLock.wait();
                 }
                 fileWait = true;
-                File file = new File(root,fileInfo.getName());
-                raf = new RandomAccessFile(file,"w");
+                file = new File(root,fileInfo.getName());
+                raf = new RandomAccessFile(file,"rw");
+//                raf.seek(fileInfo.getSeek());
+//                raf.write(fileInfo.getData().getBytes());
+//                raf.writeBytes(fileInfo.getData());
                 raf.seek(fileInfo.getSeek());
-                raf.write(fileInfo.getData().getBytes());
-                Log.e("MyTag","rcv file seek:" + fileInfo.getSeek());
+                raf.write(fileInfo.getData().getBytes(),0,fileInfo.getData().length());
+                Log.e("MyTag", "rcv file seek:" + fileInfo.getSeek());
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {

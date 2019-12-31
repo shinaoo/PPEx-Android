@@ -41,9 +41,10 @@ public class FileTypeMsgHandler implements TypeMessageHandler {
         } else if (ftm.getAction() == FileTypeMsg.ACTION.ADD_ACK_FAIL.ordinal()) {
             fileProcess.acceptADDACKFAILAction(fileInfo);
         } else if (ftm.getAction() == FileTypeMsg.ACTION.UPD.ordinal()) {
-            boolean ret = fileProcess.acceptUPDAction(fileInfo);
-            ftm.setAction(ByteUtil.int2byteArr(ret ? FileTypeMsg.ACTION.UPD_ACK_SUCC.ordinal() : FileTypeMsg.ACTION.UPD_ACK_FAIL.ordinal())[0]);
-            rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
+            fileProcess.acceptUPDAction(fileInfo);
+//            boolean ret = fileProcess.acceptUPDAction(fileInfo);
+//            ftm.setAction(ByteUtil.int2byteArr(ret ? FileTypeMsg.ACTION.UPD_ACK_SUCC.ordinal() : FileTypeMsg.ACTION.UPD_ACK_FAIL.ordinal())[0]);
+//            rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
         } else if (ftm.getAction() == FileTypeMsg.ACTION.UPD_ACK_SUCC.ordinal()) {
             fileProcess.acceptUPDACKSUCCAction(fileInfo);
         } else if (ftm.getAction() == FileTypeMsg.ACTION.UPD_ACK_FAIL.ordinal()) {

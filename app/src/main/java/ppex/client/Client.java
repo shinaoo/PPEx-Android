@@ -28,6 +28,7 @@ import ppex.proto.entity.Connection;
 import ppex.proto.entity.through.Connect;
 import ppex.proto.msg.type.TxtTypeMsg;
 import ppex.proto.rudp.*;
+import ppex.proto.rudp2.RudpParam;
 import ppex.proto.tpool.IThreadExecute;
 import ppex.proto.tpool.ThreadExecute;
 import ppex.utils.MessageUtil;
@@ -128,10 +129,11 @@ public class Client {
         Class<? extends Channel> chnCls = epoll ? EpollDatagramChannel.class : NioDatagramChannel.class;
         bootstrap.channel(chnCls).group(eventLoopGroup);
         bootstrap.option(ChannelOption.SO_BROADCAST, true).option(ChannelOption.SO_REUSEADDR, true)
-                .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Rudp.HEAD_LEN, Rudp.MTU_DEFUALT, Rudp.MTU_DEFUALT));
+                .option(ChannelOption.SO_RCVBUF, RudpParam.MTU_DEFAULT).option(ChannelOption.SO_SNDBUF,RudpParam.MTU_DEFAULT);
         bootstrap.handler(new ChannelInitializer<NioDatagramChannel>() {
             @Override
             protected void initChannel(NioDatagramChannel ch) throws Exception {
+
                 //如果不加心跳保持连接,当Server端关闭后,Channel就inactive.后面应该要添加Channel如果inactive后重启的机制.保持Channel在线
                 ch.pipeline().addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));
                 ch.pipeline().addLast(clientHandler);
