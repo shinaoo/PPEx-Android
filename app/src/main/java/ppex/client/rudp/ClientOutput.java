@@ -55,14 +55,15 @@ public class ClientOutput implements IOutput {
     public void output(ByteBuf data, Rudp2 rudp2, long sn) {
         DatagramPacket packet = new DatagramPacket(data, connection.getAddress());
         if (channel.isActive() && channel.isOpen()) {
-            ChannelFuture fu = channel.writeAndFlush(packet);
-            fu.addListener(future -> {
-                if (future.isSuccess()) {
-                } else {
-                    System.out.println("channel writeandflush failed");
-                    future.cause().printStackTrace();
-                }
-            });
+            channel.writeAndFlush(packet);
+//            ChannelFuture fu = channel.writeAndFlush(packet);
+//            fu.addListener(future -> {
+//                if (future.isSuccess()) {
+//                } else {
+//                    System.out.println("channel writeandflush failed");
+//                    future.cause().printStackTrace();
+//                }
+//            });
         } else {
             System.out.println("channel is close");
         }

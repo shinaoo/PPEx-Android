@@ -219,14 +219,14 @@ public class ConnectedActivity extends Activity {
             long seek = 0;
             while((byteread = fis.read(buf)) != -1){
                 String data = new String(buf,0,byteread);
-                seek += data.getBytes().length;
                 FileInfo fileInfo = new FileInfo(targetFile.getName(),-1,seek,data);
                 FileTypeMsg ftm = new FileTypeMsg();
                 ftm.setTo(client.getConnTarget().getAddress());
                 ftm.setAction(ByteUtil.int2byteArr(FileTypeMsg.ACTION.UPD.ordinal())[0]);
                 ftm.setData(JSON.toJSONString(fileInfo));
                 boolean ret = rudpPack.send2(MessageUtil.filemsg2Msg(ftm));
-                Log.e("MyTag","snd file seek:" + seek + " ret:" + ret);
+                seek += byteread;
+                Log.e("MyTag","snd file seek:" + seek + " ret:" + ret );
             }
         } catch (Exception e) {
             e.printStackTrace();

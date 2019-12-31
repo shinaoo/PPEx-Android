@@ -255,7 +255,7 @@ public class Rudp2 {
             }
             switch (cmd) {
                 case RudpParam.CMD_SND:
-                    Log.e("MyTag","rcv sn:"+ sn + " from:" + this.output.getConn().getAddress());
+                    Log.e("MyTag","rcv snd sn:"+ sn + " from:" + this.output.getConn().getAddress());
                     byte[] data = new byte[length];
                     buf.readBytes(data, 0, length);
                     //todo 应该还要处理一种 this.tag == New && tag== Old的情况
@@ -352,8 +352,8 @@ public class Rudp2 {
 
     private void sndChunk(ByteBuf buf, long sn) {
         if (output != null) {
-            output.output(buf, this, sn);
             Log.e("MyTag","snd sn:" + sn + " to:" + output.getConn().getAddress());
+            output.output(buf, this, sn);
             Statistic.outputCount.getAndIncrement();
         } else {
             System.out.println("output is null");
